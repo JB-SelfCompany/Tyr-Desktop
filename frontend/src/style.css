@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme Colors - Material Design 3 + 2025 Trends */
+    --color-primary: #006C4C;           /* Material Green - Primary actions */
+    --color-text-primary: #1A1C1A;      /* MD onBackground - Main text (WCAG AAA) */
+    --color-text-secondary: #414942;    /* MD onSurfaceVariant - Secondary text */
+    --color-text-tertiary: #707973;     /* MD outline - Hints/labels */
+    --color-bg-primary: #FEFFFE;        /* MD surface - Cards (soft white) */
+    --color-bg-secondary: #F5F7F5;      /* MD background - Page background (warm gray) */
+    --color-bg-tertiary: #DDE5DD;       /* MD surfaceVariant - Input backgrounds */
+    --color-border: #C7CDC7;            /* Subtle border (lighter than outline) */
+    --color-hover: #D1FAE5;             /* Light green tint - Hover states */
+    --color-success: #4CAF50;           /* Status running green */
+    --color-warning: #FF9800;           /* Status starting orange */
+    --color-error: #BA1A1A;             /* MD error - Error states */
+  }
+
+  .dark {
+    /* Dark Theme Colors - Material Design 3 + 2025 Trends */
+    --color-primary: #6CDB9C;           /* Bright MD green - Primary actions */
+    --color-text-primary: #E8F0E8;      /* Off-white (not pure white) - Main text */
+    --color-text-secondary: #C1CFC1;    /* Desaturated light gray - Secondary text */
+    --color-text-tertiary: #899389;     /* MD outline dark - Hints/labels */
+    --color-bg-primary: #1F2B25;        /* Card background (lighter than page) */
+    --color-bg-secondary: #191C1A;      /* MD background - Page background */
+    --color-bg-tertiary: #2A3530;       /* MD space-blue-light - Input backgrounds */
+    --color-border: #404943;            /* MD surfaceVariant dark - Borders */
+    --color-hover: #005138;             /* Dark green - Hover states */
+    --color-success: #6CDB9C;           /* Bright green - Success (desaturated from light) */
+    --color-warning: #FFB74D;           /* Softer orange - Warning (desaturated) */
+    --color-error: #FFB4AB;             /* MD error dark - Error states */
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply m-0 font-sans;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Fix font sizing and spacing for Russian/Cyrillic */
+  html[lang="ru"] body,
+  html[lang="ru"] body * {
+    letter-spacing: -0.015em;
+  }
+
+  /* Ensure consistent sizing for font-futuristic on Cyrillic */
+  html[lang="ru"] .font-futuristic {
+    font-size: 0.95em;
+    font-weight: 500;
+  }
+
+  /* Ensure consistent sizing for font-display on Cyrillic */
+  html[lang="ru"] .font-display {
+    font-size: 0.92em;
+    font-weight: 700;
+  }
+
+  /* Fix specific large elements in Russian */
+  html[lang="ru"] h1.text-5xl {
+    font-size: 2.5rem !important;
+  }
+
+  html[lang="ru"] .text-lg {
+    font-size: 1rem !important;
+  }
+
+  html[lang="ru"] .text-xl {
+    font-size: 1.1rem !important;
+  }
+
+  html[lang="ru"] .text-3xl {
+    font-size: 1.6rem !important;
+  }
+
+  /* Global text color enforcement - 2025 Standards */
+  :root {
+    color: #1A1C1A;  /* MD onBackground - WCAG AAA compliant */
+  }
+
+  .dark {
+    color: #E8F0E8 !important;  /* Off-white (not pure #FFF) - reduces eye strain */
+  }
+
+  /* CRITICAL: Force all text to be light on dark theme */
+  .dark,
+  .dark * {
+    color: #E8F0E8 !important;
+  }
+
+  /* Preserve specific color overrides for status and accent elements */
+  .dark .text-md-dark-primary,
+  .dark [class*="text-md-dark-primary"] { color: #6CDB9C !important; }
+
+  .dark .text-md-dark-secondary,
+  .dark [class*="text-md-dark-secondary"] { color: #B3CCBE !important; }
+
+  .dark .text-md-dark-tertiary,
+  .dark [class*="text-md-dark-tertiary"] { color: #A5CCDE !important; }
+
+  .dark .text-md-dark-error,
+  .dark [class*="text-md-dark-error"] { color: #FFB4AB !important; }
+
+  .dark .text-md-dark-onPrimary,
+  .dark [class*="text-md-dark-onPrimary"] { color: #003826 !important; }
+
+  .dark .text-md-dark-onPrimaryContainer,
+  .dark [class*="text-md-dark-onPrimaryContainer"] { color: #89F8C7 !important; }
+
+  .dark .text-md-dark-onSecondaryContainer,
+  .dark [class*="text-md-dark-onSecondaryContainer"] { color: #CFE9D9 !important; }
+
+  .dark .text-md-dark-onTertiaryContainer,
+  .dark [class*="text-md-dark-onTertiaryContainer"] { color: #C1E8FB !important; }
+
+  .dark .text-md-dark-onErrorContainer,
+  .dark [class*="text-md-dark-onErrorContainer"] { color: #FFDAD6 !important; }
+
+  .dark .text-md-dark-onSurfaceVariant,
+  .dark [class*="text-md-dark-onSurfaceVariant"] { color: #C1CFC1 !important; }
+
+  .dark .text-md-dark-outline,
+  .dark [class*="text-md-dark-outline"] { color: #899389 !important; }
+
+  /* Preserve gradient and special text effects */
+  .dark .text-iridescent,
+  .dark [class*="bg-gradient"],
+  .dark [class*="bg-clip-text"] {
+    color: transparent !important;
+  }
+
+  /* Light theme - ensure dark text */
+  :root:not(.dark),
+  :root:not(.dark) * {
+    color: #1A1C1A !important;
+  }
+
+  /* Preserve specific color overrides for light theme */
+  :root:not(.dark) .text-md-light-primary,
+  :root:not(.dark) [class*="text-md-light-primary"] { color: #006C4C !important; }
+
+  :root:not(.dark) .text-md-light-secondary,
+  :root:not(.dark) [class*="text-md-light-secondary"] { color: #4D6357 !important; }
+
+  :root:not(.dark) .text-md-light-tertiary,
+  :root:not(.dark) [class*="text-md-light-tertiary"] { color: #3D6373 !important; }
+
+  :root:not(.dark) .text-md-light-error,
+  :root:not(.dark) [class*="text-md-light-error"] { color: #BA1A1A !important; }
+
+  :root:not(.dark) .text-md-light-onSurfaceVariant,
+  :root:not(.dark) [class*="text-md-light-onSurfaceVariant"] { color: #414942 !important; }
+
+  :root:not(.dark) .text-md-light-outline,
+  :root:not(.dark) [class*="text-md-light-outline"] { color: #707973 !important; }
+
+  /* Preserve gradient and special text effects on light theme */
+  :root:not(.dark) .text-iridescent,
+  :root:not(.dark) [class*="bg-gradient"],
+  :root:not(.dark) [class*="bg-clip-text"] {
+    color: transparent !important;
+  }
+
+  #root {
+    @apply h-screen w-screen overflow-hidden;
+  }
+
+  /* Input and button text should use their own colors */
+  input,
+  textarea,
+  button,
+  select {
+    color: inherit;
+  }
+
+  .dark input:not([class*="text-"]),
+  .dark textarea:not([class*="text-"]),
+  .dark select:not([class*="text-"]) {
+    color: #E8F0E8 !important;
+  }
+
+  :root:not(.dark) input:not([class*="text-"]),
+  :root:not(.dark) textarea:not([class*="text-"]),
+  :root:not(.dark) select:not([class*="text-"]) {
+    color: #1A1C1A !important;
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism utility - 2025 Material Design 3 */
+  .glass-light {
+    background: rgba(254, 255, 254, 0.92) !important;  /* MD surface with high opacity */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(199, 205, 199, 0.6) !important;  /* Subtle green-tinted border */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .glass-dark {
+    background: rgba(31, 43, 37, 0.93) !important;  /* Card background with high opacity */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(64, 73, 67, 0.6) !important;  /* MD surfaceVariant dark */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Force proper contrast text in light theme - WCAG AAA */
+  :not(.dark) .glass-light,
+  :not(.dark) .glass-light *:not(button):not(input):not(textarea) {
+    color: #1A1C1A !important;  /* MD onBackground */
+  }
+
+  /* Force off-white text in dark theme glass cards */
+  .dark .glass-dark {
+    color: #E8F0E8 !important;
+  }
+
+  .dark .glass-dark * {
+    color: #E8F0E8 !important;
+  }
+
+  /* Light theme glass cards */
+  :root:not(.dark) .glass-light {
+    color: #1A1C1A !important;
+  }
+
+  :root:not(.dark) .glass-light * {
+    color: #1A1C1A !important;
+  }
+
+  /* TEXT COLOR UTILITIES - 2025 WCAG AAA STANDARDS */
+  /* Primary text - main content */
+  .text-primary {
+    color: #1A1C1A !important;  /* MD onBackground - Light */
+  }
+  .dark .text-primary {
+    color: #E8F0E8 !important;  /* Off-white - Dark (reduces eye strain) */
+  }
+
+  /* Secondary text - descriptions, labels */
+  .text-secondary {
+    color: #414942 !important;  /* MD onSurfaceVariant - Light */
+  }
+  .dark .text-secondary {
+    color: #C1CFC1 !important;  /* Desaturated light gray - Dark */
+  }
+
+  /* Tertiary text - hints, disabled */
+  .text-tertiary {
+    color: #707973 !important;  /* MD outline - Light */
+  }
+  .dark .text-tertiary {
+    color: #B3BDB3 !important;  /* Lighter gray - Dark */
+  }
+
+  /* CRITICAL: Force proper text colors in main content area */
+  main {
+    color: inherit;
+  }
+
+  .dark main {
+    color: #E8F0E8 !important;
+  }
+
+  .dark main * {
+    color: #E8F0E8 !important;
+  }
+
+  :root:not(.dark) main {
+    color: #1A1C1A !important;
+  }
+
+  :root:not(.dark) main * {
+    color: #1A1C1A !important;
+  }
+
+  /* Holographic border animation */
+  .holographic-border {
+    position: relative;
+    background: linear-gradient(90deg, #FF00FF, #00FFFF, #00FF00, #FFFF00, #FF00FF);
+    background-size: 200% 100%;
+    animation: holographic-spin 3s linear infinite;
+  }
+
+  /* Iridescent text */
+  .text-iridescent {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Neon glow text */
+  .text-neon-glow {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}

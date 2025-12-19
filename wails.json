@@ -1,0 +1,24 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Tyr Desktop",
+  "outputfilename": "Tyr-Desktop",
+  "version": "2.0.0",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "JB-SelfCompany",
+    "email": "github@shd.company"
+  },
+  "info": {
+    "companyName": "JB-SelfCompany",
+    "productName": "Tyr Desktop",
+    "productVersion": "2.0.0",
+    "copyright": "© 2025 JB-SelfCompany. All rights reserved.",
+    "comments": "P2P email client built on Yggdrasil network"
+  },
+  "wailsjsdir": "./frontend",
+  "debounceMS": 100,
+  "reloadonchange": true
+}
