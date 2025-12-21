@@ -351,7 +351,7 @@ The Wails dev server runs on `http://localhost:34115` with hot reload for fronte
 - **Peer-to-Peer Encryption**: All Yggdrasil traffic is end-to-end encrypted
 - **Password Storage**: Uses OS keyring (Windows Credential Manager / Secret Service)
 - **Backup Encryption**: AES-256-GCM with PBKDF2 (100,000 iterations)
-- **No Telemetry**: No data collection or external connections except Yggdrasil peers
+- **No Telemetry**: No data collection or external connections except Yggdrasil peerss
 
 ## 🔧 Technical Details
 
