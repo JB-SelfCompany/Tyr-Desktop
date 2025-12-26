@@ -112,10 +112,15 @@ Binary will be created at `build\bin\`
 
 ### Linux
 
+#### System Requirements
+- **Required packages:**
+  - Ubuntu 22.04 / Debian 12 and earlier: `build-essential libgtk-3-dev libwebkit2gtk-4.0-dev`
+  - Ubuntu 24.04+ / Debian 13+: `build-essential libgtk-3-dev libwebkit2gtk-4.1-dev`
+
 #### Option 1: Portable Binary (Recommended)
 ```bash
 # Download binary
-wget https://github.com/JB-SelfCompany/Tyr-Desktop/releases/download/v1.0.0/Tyr-Desktop-1.0.0-linux-amd64
+wget https://github.com/JB-SelfCompany/Tyr-Desktop/releases/download/v2.0.0/Tyr-Desktop-2.0.0-linux-amd64
 
 # Make executable
 chmod +x Tyr-Desktop-*-linux-amd64
@@ -126,13 +131,21 @@ chmod +x Tyr-Desktop-*-linux-amd64
 
 #### Option 2: Build from Source
 ```bash
+# Install build dependencies
+# For Ubuntu 24.04+ / Debian 13+:
+sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.1-dev
+
+# For Ubuntu 22.04 / Debian 12 and earlier:
+# sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
+
+# Clone repository
 git clone https://github.com/JB-SelfCompany/Tyr-Desktop.git
 cd Tyr-Desktop
 
 # Make build script executable
 chmod +x build-linux.sh
 
-# Build
+# Build (script automatically detects and uses correct webkit version)
 ./build-linux.sh
 ```
 
@@ -311,7 +324,19 @@ Tyr runs in the system tray (notification area):
 - WebView2 runtime (included in Windows 11, auto-installed on first run in Windows 10)
 
 **Linux:**
-- WebKitGTK: `sudo apt-get install libwebkit2gtk-4.0-dev` (Debian/Ubuntu)
+- **Ubuntu 22.04 / Debian 12 and earlier:**
+  ```bash
+  sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
+  ```
+- **Ubuntu 24.04+ / Debian 13+:**
+  ```bash
+  sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.1-dev
+  ```
+
+  When building on Ubuntu 24.04+, use the `webkit2_41` build tag:
+  ```bash
+  wails build -tags webkit2_41
+  ```
 
 ### Build Commands
 

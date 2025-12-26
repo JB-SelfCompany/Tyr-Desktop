@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
@@ -261,11 +262,28 @@ func (a *App) SetOnboardingComplete() error {
 // ToggleWindowVisibility toggles between showing and hiding the window
 func (a *App) ToggleWindowVisibility() {
 	if a.ctx == nil {
+		log.Println("ToggleWindowVisibility: context is nil")
 		return
 	}
 
-	runtime.WindowShow(a.ctx)
+	log.Println("ToggleWindowVisibility: showing and focusing window")
+
+	// Use the same robust approach as tray.ShowWindow
 	runtime.WindowUnminimise(a.ctx)
+	runtime.WindowShow(a.ctx)
+	runtime.WindowSetAlwaysOnTop(a.ctx, true)
+	runtime.WindowCenter(a.ctx)
+
+	// Remove always-on-top after a short delay
+	go func() {
+		runtime.EventsEmit(a.ctx, "window:showing", nil)
+
+		// Wait 200ms for window to fully appear before removing always-on-top
+		time.Sleep(200 * time.Millisecond)
+
+		runtime.WindowSetAlwaysOnTop(a.ctx, false)
+		log.Println("ToggleWindowVisibility: window should now be visible and focused")
+	}()
 }
 
 // getPeerDiscoveryContext returns a context for peer discovery operations

@@ -6,8 +6,9 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/getlantern/systray"
+	"github.com/energye/systray"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/core"
@@ -81,13 +82,40 @@ func (m *Manager) onTrayReady() {
 
 	m.mQuit = systray.AddMenuItem(localizer.Get("app.quit"), localizer.Get("app.quit"))
 
+	// Set up menu item click handlers using callback functions
+	m.mShow.Click(func() {
+		log.Println("Tray: Show window clicked")
+		if m.onShowCallback != nil {
+			m.onShowCallback()
+		}
+	})
+
+	m.mSettings.Click(func() {
+		log.Println("Tray: Settings clicked")
+		if m.onSettingsCallback != nil {
+			m.onSettingsCallback()
+		}
+	})
+
+	m.mQuit.Click(func() {
+		log.Println("Tray: Quit clicked")
+		if m.onQuitCallback != nil {
+			m.onQuitCallback()
+		}
+	})
+
+	// Set double-click handler to show window
+	systray.SetOnDClick(func(menu systray.IMenu) {
+		log.Println("Tray: Double-click detected, showing window")
+		if m.onShowCallback != nil {
+			m.onShowCallback()
+		}
+	})
+
 	m.initialized = true
 
 	// Update menu with current status
 	m.updateMenu()
-
-	// Handle menu actions in goroutine
-	go m.handleTrayActions()
 
 	log.Println("System tray initialized successfully")
 }
@@ -95,30 +123,6 @@ func (m *Manager) onTrayReady() {
 // onTrayExit is called when the tray is exiting
 func (m *Manager) onTrayExit() {
 	log.Println("System tray exiting")
-}
-
-// handleTrayActions handles clicks on tray menu items
-func (m *Manager) handleTrayActions() {
-	for {
-		select {
-		case <-m.mShow.ClickedCh:
-			log.Println("Tray: Show window clicked")
-			if m.onShowCallback != nil {
-				m.onShowCallback()
-			}
-		case <-m.mSettings.ClickedCh:
-			log.Println("Tray: Settings clicked")
-			if m.onSettingsCallback != nil {
-				m.onSettingsCallback()
-			}
-		case <-m.mQuit.ClickedCh:
-			log.Println("Tray: Quit clicked")
-			if m.onQuitCallback != nil {
-				m.onQuitCallback()
-			}
-			return
-		}
-	}
 }
 
 // updateMenu updates system tray menu with current service status
@@ -170,39 +174,90 @@ func (m *Manager) UpdateStatus() {
 	m.updateMenu()
 }
 
-// ShowWindow shows the window from system tray
+// ShowWindow shows the window from system tray with robust recovery
 func ShowWindow(ctx context.Context) {
 	if ctx == nil {
+		log.Println("ShowWindow: context is nil, cannot show window")
 		return
 	}
 
-	runtime.WindowShow(ctx)
+	log.Println("ShowWindow: attempting to show window from tray")
+
+	// Multi-step approach to ensure window is shown reliably on Windows
+	// This fixes issues where window becomes unresponsive after being minimized for a long time
+
+	// Step 1: Unminimize first (important for Windows)
 	runtime.WindowUnminimise(ctx)
+	log.Println("ShowWindow: window unminimized")
+
+	// Step 2: Show the window
+	runtime.WindowShow(ctx)
+	log.Println("ShowWindow: window shown")
+
+	// Step 3: Set window to always on top temporarily to force it to foreground
+	// This is crucial on Windows where the window might be hidden behind other windows
+	runtime.WindowSetAlwaysOnTop(ctx, true)
+	log.Println("ShowWindow: window set to always on top (temporary)")
+
+	// Step 4: Center the window
 	runtime.WindowCenter(ctx)
+	log.Println("ShowWindow: window centered")
+
+	// Step 5: Remove always on top after a short delay
+	// This ensures the window has time to appear before we remove the flag
+	go func() {
+		// Small delay to ensure window is fully visible
+		// Using a goroutine so we don't block the tray click handler
+		runtime.EventsEmit(ctx, "window:showing", nil)
+
+		// Wait 200ms for the window manager to bring the window forward
+		// This delay is crucial on Windows to ensure the window fully appears
+		// before we remove the always-on-top flag
+		time.Sleep(200 * time.Millisecond)
+
+		runtime.WindowSetAlwaysOnTop(ctx, false)
+		log.Println("ShowWindow: always on top removed, window should now be visible")
+	}()
 }
 
 // ShowSettingsWindow shows the settings window from system tray
 func ShowSettingsWindow(ctx context.Context) {
 	if ctx == nil {
+		log.Println("ShowSettingsWindow: context is nil, cannot show window")
 		return
 	}
 
-	// Show window first
-	runtime.WindowShow(ctx)
+	log.Println("ShowSettingsWindow: attempting to show settings from tray")
+
+	// Use the same robust window showing approach as ShowWindow
 	runtime.WindowUnminimise(ctx)
+	runtime.WindowShow(ctx)
+	runtime.WindowSetAlwaysOnTop(ctx, true)
 	runtime.WindowCenter(ctx)
 
-	// Small delay to ensure window is visible before navigation
-	// Then navigate to settings using direct path manipulation
-	script := `
-		setTimeout(() => {
+	log.Println("ShowSettingsWindow: window shown, navigating to settings")
+
+	// Navigate to settings and remove always-on-top after delay
+	go func() {
+		runtime.EventsEmit(ctx, "window:showing", nil)
+
+		// Small delay to ensure window is visible before navigation
+		time.Sleep(100 * time.Millisecond)
+
+		// Navigate to settings using direct path manipulation
+		script := `
 			if (window.location.pathname !== '/settings') {
 				window.history.pushState({}, '', '/settings');
 				window.dispatchEvent(new PopStateEvent('popstate'));
 			}
-		}, 100);
-	`
-	runtime.WindowExecJS(ctx, script)
+		`
+		runtime.WindowExecJS(ctx, script)
+
+		// Wait a bit more before removing always-on-top
+		time.Sleep(100 * time.Millisecond)
+		runtime.WindowSetAlwaysOnTop(ctx, false)
+		log.Println("ShowSettingsWindow: navigation complete, always on top removed")
+	}()
 }
 
 // QuitApplication quits the application from system tray

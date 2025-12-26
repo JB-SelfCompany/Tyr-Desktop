@@ -1,4 +1,8 @@
+#!/bin/bash
 set -e
+
+# Ensure /usr/local/go/bin is in PATH
+export PATH=$PATH:/usr/local/go/bin
 
 echo "========================================"
 echo "Tyr Desktop - Linux Build Script"
@@ -133,7 +137,7 @@ echo ""
 # Step 3: Building application...
 echo "Step 3: Building application..."
 echo "This may take several minutes..."
-wails build -clean -platform linux/amd64 -ldflags "-X main.version=$VERSION"
+wails build -clean -platform linux/amd64 -tags webkit2_41 -ldflags "-X main.version=$VERSION"
 if [ $? -ne 0 ]; then
     echo "ERROR: Build failed"
     exit 1

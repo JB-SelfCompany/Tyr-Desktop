@@ -111,10 +111,15 @@ build-windows.bat
 
 ### Linux
 
+#### Системные требования
+- **Необходимые пакеты:**
+  - Ubuntu 22.04 / Debian 12 и старше: `build-essential libgtk-3-dev libwebkit2gtk-4.0-dev`
+  - Ubuntu 24.04+ / Debian 13+: `build-essential libgtk-3-dev libwebkit2gtk-4.1-dev`
+
 #### Вариант 1: Portable бинарник (Рекомендуется)
 ```bash
 # Скачать бинарник
-wget https://github.com/JB-SelfCompany/Tyr-Desktop/releases/download/v1.0.0/Tyr-Desktop-1.0.0-linux-amd64
+wget https://github.com/JB-SelfCompany/Tyr-Desktop/releases/download/v2.0.0/Tyr-Desktop-2.0.0-linux-amd64
 
 # Сделать исполняемым
 chmod +x Tyr-Desktop-*-linux-amd64
@@ -125,13 +130,21 @@ chmod +x Tyr-Desktop-*-linux-amd64
 
 #### Вариант 2: Сборка из исходников
 ```bash
+# Установить зависимости для сборки
+# Для Ubuntu 24.04+ / Debian 13+:
+sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.1-dev
+
+# Для Ubuntu 22.04 / Debian 12 и старше:
+# sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
+
+# Клонировать репозиторий
 git clone https://github.com/JB-SelfCompany/Tyr-Desktop.git
 cd Tyr-Desktop
 
 # Сделать скрипт сборки исполняемым
 chmod +x build-linux.sh
 
-# Собрать
+# Собрать (скрипт автоматически определяет и использует правильную версию webkit)
 ./build-linux.sh
 ```
 
@@ -310,7 +323,19 @@ Tyr работает в системном трее (область уведом
 - WebView2 runtime (включен в Windows 11, автоматически устанавливается при первом запуске в Windows 10)
 
 **Linux:**
-- WebKitGTK: `sudo apt-get install libwebkit2gtk-4.0-dev` (Debian/Ubuntu)
+- **Ubuntu 22.04 / Debian 12 и старше:**
+  ```bash
+  sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
+  ```
+- **Ubuntu 24.04+ / Debian 13+:**
+  ```bash
+  sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.1-dev
+  ```
+
+  При сборке на Ubuntu 24.04+ используйте тег `webkit2_41`:
+  ```bash
+  wails build -tags webkit2_41
+  ```
 
 ### Команды сборки
 
