@@ -211,9 +211,13 @@ func (sm *ServiceManager) Start() error {
 
 	// Get enabled peers from configuration
 	peers := sm.config.GetEnabledPeers()
+
+	// Allow starting with no peers - service can run locally without network peers
+	// This is useful for testing or when user wants to configure peers after start
 	if len(peers) == 0 {
-		sm.mu.Unlock()
-		return fmt.Errorf("no enabled peers configured")
+		log.Println("Starting service with no peers (running in local-only mode)")
+	} else {
+		log.Printf("Starting service with %d enabled peer(s)", len(peers))
 	}
 
 	sm.mu.Unlock()

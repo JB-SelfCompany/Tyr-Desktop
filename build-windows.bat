@@ -131,6 +131,18 @@ if not exist build\bin\Tyr-Desktop.exe (
     exit /b 1
 )
 
+REM Rename executable with version
+set FINAL_NAME=Tyr-Desktop-%VERSION%-windows-amd64.exe
+echo Renaming executable to %FINAL_NAME%...
+move /Y build\bin\Tyr-Desktop.exe build\bin\%FINAL_NAME% >nul
+if not exist build\bin\%FINAL_NAME% (
+    echo ERROR: Failed to rename executable!
+    pause
+    exit /b 1
+)
+echo Done.
+echo.
+
 REM Update system tray icon
 echo Updating system tray icon...
 if exist build\windows\icon.ico (
@@ -147,10 +159,10 @@ echo ========================================
 echo Build completed successfully!
 echo ========================================
 echo.
-echo Executable: build\bin\Tyr-Desktop.exe
+echo Executable: build\bin\%FINAL_NAME%
 echo Version: %VERSION%
 echo.
-echo You can now run the application from build\bin\Tyr-Desktop.exe
+echo You can now run the application from build\bin\%FINAL_NAME%
 echo.
 
 pause

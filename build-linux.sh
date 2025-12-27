@@ -145,8 +145,21 @@ fi
 echo "Done."
 echo ""
 
-# Step 4: Updating system tray icon...
-echo "Step 4: Updating system tray icon..."
+# Step 4: Rename executable with version
+echo "Step 4: Renaming executable with version..."
+FINAL_NAME="Tyr-Desktop-${VERSION}-linux-amd64"
+if [ -f "build/bin/Tyr-Desktop" ]; then
+    mv build/bin/Tyr-Desktop "build/bin/${FINAL_NAME}"
+    echo "Renamed to: ${FINAL_NAME}"
+else
+    echo "ERROR: Executable not found at build/bin/Tyr-Desktop"
+    exit 1
+fi
+echo "Done."
+echo ""
+
+# Step 5: Updating system tray icon...
+echo "Step 5: Updating system tray icon..."
 if [ -f "build/linux/icon.png" ]; then
     cp build/linux/icon.png internal/resources/tyr.png
     echo "System tray icon updated"
@@ -157,9 +170,6 @@ echo ""
 echo "========================================"
 echo "Build completed successfully!"
 echo "========================================"
-if [ -f "build/bin/Tyr-Desktop" ]; then
-    echo "Executable: build/bin/Tyr-Desktop"
-else
-    echo "ERROR: Executable not found at build/bin/Tyr-Desktop"
-fi
+echo "Executable: build/bin/${FINAL_NAME}"
+echo "Version: ${VERSION}"
 echo ""

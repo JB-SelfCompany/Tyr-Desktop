@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
@@ -93,16 +94,21 @@ func CreateBackup(config *Config, includeDB bool, password string) ([]byte, erro
 	// Read database if requested
 	var databaseB64 string
 	if includeDB {
+		log.Printf("[Backup] Reading database from: %s", config.ServiceSettings.DatabasePath)
 		dbData, err := readDatabase(config.ServiceSettings.DatabasePath)
 		if err != nil {
 			// Database read failed - include error in backup metadata but continue
 			// This allows backing up configuration even if database is inaccessible
+			log.Printf("[Backup] WARNING: Failed to read database: %v - backup will not include database", err)
 			includeDB = false
 			databaseB64 = ""
 		} else {
 			// Encode database to base64
 			databaseB64 = base64.StdEncoding.EncodeToString(dbData)
+			log.Printf("[Backup] Database encoded successfully (%d bytes raw, %d bytes base64)", len(dbData), len(databaseB64))
 		}
+	} else {
+		log.Println("[Backup] Database not included in backup (includeDB=false)")
 	}
 
 	// Get password from keyring if available
@@ -216,11 +222,16 @@ func RestoreBackup(data []byte, password string) (*Config, []byte, error) {
 
 	// Decode database if included
 	var databaseBytes []byte
+	log.Printf("[Restore] Backup includesDatabase=%v, database field length=%d", backupData.IncludesDatabase, len(backupData.Database))
 	if backupData.IncludesDatabase && backupData.Database != "" {
+		log.Println("[Restore] Decoding database from base64...")
 		databaseBytes, err = base64.StdEncoding.DecodeString(backupData.Database)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to decode database from backup: %w", err)
 		}
+		log.Printf("[Restore] Database decoded successfully (%d bytes)", len(databaseBytes))
+	} else {
+		log.Println("[Restore] No database to restore from backup")
 	}
 
 	// Restore password to keyring if available
@@ -324,11 +335,15 @@ func RestoreDatabase(config *Config, databaseBytes []byte) error {
 		return fmt.Errorf("database path not configured")
 	}
 
+	log.Printf("[RestoreDatabase] Writing %d bytes to %s", len(databaseBytes), config.ServiceSettings.DatabasePath)
+
 	// Write database file with user-only read/write permissions
 	if err := os.WriteFile(config.ServiceSettings.DatabasePath, databaseBytes, 0600); err != nil {
+		log.Printf("[RestoreDatabase] ERROR: Failed to write database: %v", err)
 		return fmt.Errorf("failed to write database file: %w", err)
 	}
 
+	log.Printf("[RestoreDatabase] Database file written successfully")
 	return nil
 }
 

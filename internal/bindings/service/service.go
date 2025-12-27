@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/core"
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/models"
@@ -72,6 +73,8 @@ func StopService(sm *core.ServiceManager) error {
 }
 
 // RestartService restarts the yggmail service
+// Implements robust restart with proper waiting for complete shutdown
+// Based on Android implementation pattern
 func RestartService(sm *core.ServiceManager) error {
 	if sm == nil {
 		return fmt.Errorf("service manager not initialized")
@@ -79,21 +82,53 @@ func RestartService(sm *core.ServiceManager) error {
 
 	log.Println("Restarting service...")
 
-	// Stop service gracefully
-	if err := sm.SoftStop(); err != nil {
-		log.Printf("Warning: failed to soft stop service: %v, trying normal stop", err)
-		if err := sm.Stop(); err != nil {
-			return fmt.Errorf("failed to stop service: %w", err)
+	// Step 1: Stop service gracefully
+	if sm.IsRunning() {
+		log.Println("Stopping service...")
+		if err := sm.SoftStop(); err != nil {
+			log.Printf("Warning: failed to soft stop service: %v, trying normal stop", err)
+			if err := sm.Stop(); err != nil {
+				return fmt.Errorf("failed to stop service: %w", err)
+			}
 		}
+
+		// Step 2: Wait for service to fully stop (up to 10 seconds)
+		// This is critical to prevent "address already in use" errors
+		log.Println("Waiting for service to fully stop...")
+		for i := 0; i < 50; i++ {
+			if !sm.IsRunning() {
+				log.Printf("Service stopped after %d ms", i*200)
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+
+			// Timeout after 10 seconds
+			if i == 49 {
+				return fmt.Errorf("service did not stop within 10 seconds")
+			}
+		}
+
+		// Step 3: Additional brief delay to ensure ports are released
+		// The native library may need extra time to release resources
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	// Reinitialize and start
+	// Step 4: Reinitialize service
+	log.Println("Reinitializing service...")
 	if err := sm.Initialize(); err != nil {
 		return fmt.Errorf("failed to reinitialize service: %w", err)
 	}
 
+	// Step 5: Start service
+	log.Println("Starting service...")
 	if err := sm.Start(); err != nil {
 		return fmt.Errorf("failed to start service: %w", err)
+	}
+
+	// Step 6: Verify service started successfully
+	time.Sleep(1 * time.Second)
+	if !sm.IsRunning() {
+		return fmt.Errorf("service failed to start after restart")
 	}
 
 	log.Println("Service restarted successfully")
@@ -187,9 +222,15 @@ func HotReloadPeers(sm *core.ServiceManager, cfg *core.Config) error {
 		return fmt.Errorf("service is not running")
 	}
 
+	// Get enabled peers from config
 	peers := cfg.GetEnabledPeers()
+
+	// Allow empty peer list - this will disconnect from all peers
+	// This is useful when user wants to disable all peers temporarily
 	if len(peers) == 0 {
-		return fmt.Errorf("no enabled peers configured")
+		log.Println("Hot-reloading with empty peer list (will disconnect from all peers)")
+	} else {
+		log.Printf("Hot-reloading with %d enabled peer(s)", len(peers))
 	}
 
 	if err := sm.HotReloadPeers(peers); err != nil {

@@ -6,14 +6,14 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/energye/systray"
+	"fyne.io/systray"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/core"
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/ui/i18n"
 )
+
 
 // Manager manages the system tray functionality
 type Manager struct {
@@ -27,12 +27,15 @@ type Manager struct {
 	onQuitCallback     func()
 
 	// Menu items
-	mutex           sync.Mutex
-	initialized     bool
-	mStatus         *systray.MenuItem
-	mShow           *systray.MenuItem
-	mSettings       *systray.MenuItem
-	mQuit           *systray.MenuItem
+	mutex       sync.Mutex
+	initialized bool
+	mStatus     *systray.MenuItem
+	mShow       *systray.MenuItem
+	mSettings   *systray.MenuItem
+	mQuit       *systray.MenuItem
+
+	// Shutdown channel to stop click handler goroutines
+	shutdownCh chan struct{}
 }
 
 // NewManager creates a new tray manager
@@ -49,12 +52,22 @@ func NewManager(
 		onShowCallback:     onShow,
 		onSettingsCallback: onSettings,
 		onQuitCallback:     onQuit,
+		shutdownCh:         make(chan struct{}),
 	}
 }
 
 // Setup initializes and configures the system tray
+// Uses systray.Run in a goroutine for proper integration with Wails
+// Based on fyne.io/systray example and community recommendations
 func (m *Manager) Setup() {
-	go systray.Run(m.onTrayReady, m.onTrayExit)
+	// Run systray in a dedicated goroutine
+	// This prevents blocking Wails' main event loop while allowing systray to have its own message pump
+	// See: https://github.com/fyne-io/systray/blob/master/example/main.go
+	go func() {
+		log.Println("Starting system tray...")
+		systray.Run(m.onTrayReady, m.onTrayExit)
+		log.Println("System tray has exited")
+	}()
 }
 
 // onTrayReady is called when the system tray is ready
@@ -69,8 +82,9 @@ func (m *Manager) onTrayReady() {
 	localizer := i18n.GetGlobalLocalizer()
 	systray.SetTooltip(localizer.Get("systray.description"))
 
-	// Create menu items once
-	m.mStatus = systray.AddMenuItem("Service: Stopped", "")
+	// Create menu items once - use localized initial status
+	initialStatus := fmt.Sprintf("%s: %s", localizer.Get("systray.service_status"), localizer.Get("dashboard.status.stopped"))
+	m.mStatus = systray.AddMenuItem(initialStatus, "")
 	m.mStatus.Disable()
 
 	systray.AddSeparator()
@@ -82,35 +96,16 @@ func (m *Manager) onTrayReady() {
 
 	m.mQuit = systray.AddMenuItem(localizer.Get("app.quit"), localizer.Get("app.quit"))
 
-	// Set up menu item click handlers using callback functions
-	m.mShow.Click(func() {
-		log.Println("Tray: Show window clicked")
-		if m.onShowCallback != nil {
-			m.onShowCallback()
-		}
-	})
+	// Set up menu item click handlers using channels (fyne.io/systray API)
+	// Each handler runs in its own goroutine and listens to the ClickedCh channel
+	go m.handleShowClicks()
+	go m.handleSettingsClicks()
+	go m.handleQuitClicks()
 
-	m.mSettings.Click(func() {
-		log.Println("Tray: Settings clicked")
-		if m.onSettingsCallback != nil {
-			m.onSettingsCallback()
-		}
-	})
-
-	m.mQuit.Click(func() {
-		log.Println("Tray: Quit clicked")
-		if m.onQuitCallback != nil {
-			m.onQuitCallback()
-		}
-	})
-
-	// Set double-click handler to show window
-	systray.SetOnDClick(func(menu systray.IMenu) {
-		log.Println("Tray: Double-click detected, showing window")
-		if m.onShowCallback != nil {
-			m.onShowCallback()
-		}
-	})
+	// REMOVED: SetOnTapped double-click implementation
+	// Reason: SetOnTapped can cause event loop blocking and unresponsiveness on Windows
+	// especially after the window has been hidden for a while.
+	// Users should use the "Show" menu item instead - this is more reliable.
 
 	m.initialized = true
 
@@ -120,16 +115,127 @@ func (m *Manager) onTrayReady() {
 	log.Println("System tray initialized successfully")
 }
 
+// handleShowClicks listens for clicks on the Show menu item
+func (m *Manager) handleShowClicks() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("handleShowClicks: recovered from panic: %v", r)
+		}
+	}()
+
+	for {
+		select {
+		case <-m.shutdownCh:
+			return
+		case <-m.mShow.ClickedCh:
+			log.Println("Tray: Show window clicked")
+
+			// Wrap callback in recovery to prevent panics from crashing the handler
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("handleShowClicks callback: recovered from panic: %v", r)
+					}
+				}()
+
+				if m.onShowCallback != nil {
+					m.onShowCallback()
+				}
+			}()
+		}
+	}
+}
+
+// handleSettingsClicks listens for clicks on the Settings menu item
+func (m *Manager) handleSettingsClicks() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("handleSettingsClicks: recovered from panic: %v", r)
+		}
+	}()
+
+	for {
+		select {
+		case <-m.shutdownCh:
+			return
+		case <-m.mSettings.ClickedCh:
+			log.Println("Tray: Settings clicked")
+
+			// Wrap callback in recovery to prevent panics from crashing the handler
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("handleSettingsClicks callback: recovered from panic: %v", r)
+					}
+				}()
+
+				if m.onSettingsCallback != nil {
+					m.onSettingsCallback()
+				}
+			}()
+		}
+	}
+}
+
+// handleQuitClicks listens for clicks on the Quit menu item
+func (m *Manager) handleQuitClicks() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("handleQuitClicks: recovered from panic: %v", r)
+		}
+	}()
+
+	for {
+		select {
+		case <-m.shutdownCh:
+			return
+		case <-m.mQuit.ClickedCh:
+			log.Println("Tray: Quit clicked")
+
+			// Wrap callback in recovery to prevent panics from crashing the handler
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("handleQuitClicks callback: recovered from panic: %v", r)
+					}
+				}()
+
+				if m.onQuitCallback != nil {
+					m.onQuitCallback()
+				}
+			}()
+		}
+	}
+}
+
 // onTrayExit is called when the tray is exiting
 func (m *Manager) onTrayExit() {
 	log.Println("System tray exiting")
 }
 
-// updateMenu updates system tray menu with current service status
-func (m *Manager) updateMenu() {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
+// Cleanup properly cleans up the system tray on application exit
+// This must be called before the application quits to prevent resource leaks
+func (m *Manager) Cleanup() {
+	log.Println("Cleaning up system tray...")
 
+	// Signal all click handler goroutines to stop
+	select {
+	case <-m.shutdownCh:
+		// Already closed
+	default:
+		close(m.shutdownCh)
+	}
+
+	// Quit the systray - this will trigger onTrayExit callback
+	// and cleanly shutdown the systray event loop
+	systray.Quit()
+
+	log.Println("System tray cleanup complete")
+}
+
+// updateMenuInternal updates system tray menu with current service status
+// MUST be called with mutex already locked or when mutex is not needed
+func (m *Manager) updateMenuInternal() {
 	if !m.initialized {
 		log.Println("Tray not initialized yet, skipping update")
 		return
@@ -161,6 +267,14 @@ func (m *Manager) updateMenu() {
 	log.Printf("System tray menu updated: %s", statusInfo)
 }
 
+// updateMenu updates system tray menu with current service status
+func (m *Manager) updateMenu() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.updateMenuInternal()
+}
+
 // UpdateMenu updates the system tray menu with current localization
 // Call this method after changing the application language
 func (m *Manager) UpdateMenu() {
@@ -174,6 +288,20 @@ func (m *Manager) UpdateStatus() {
 	m.updateMenu()
 }
 
+// SetServiceManager updates the service manager reference
+// This should be called when service manager is initialized after tray creation (e.g., after onboarding)
+func (m *Manager) SetServiceManager(sm *core.ServiceManager) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.serviceManager = sm
+
+	// Update menu immediately with new service manager status
+	if m.initialized && sm != nil {
+		m.updateMenuInternal()
+	}
+}
+
 // ShowWindow shows the window from system tray with robust recovery
 func ShowWindow(ctx context.Context) {
 	if ctx == nil {
@@ -183,41 +311,35 @@ func ShowWindow(ctx context.Context) {
 
 	log.Println("ShowWindow: attempting to show window from tray")
 
-	// Multi-step approach to ensure window is shown reliably on Windows
-	// This fixes issues where window becomes unresponsive after being minimized for a long time
+	// Simplified approach for showing window on Windows
+	// Previous complex approach with goroutines and delays could cause race conditions
+	// and event loop blocking, leading to unresponsiveness
+
+	// Use defer with recover to prevent panics from blocking the tray
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("ShowWindow: recovered from panic: %v", r)
+		}
+	}()
 
 	// Step 1: Unminimize first (important for Windows)
 	runtime.WindowUnminimise(ctx)
-	log.Println("ShowWindow: window unminimized")
 
 	// Step 2: Show the window
 	runtime.WindowShow(ctx)
-	log.Println("ShowWindow: window shown")
 
-	// Step 3: Set window to always on top temporarily to force it to foreground
-	// This is crucial on Windows where the window might be hidden behind other windows
+	// Step 3: Bring to front using WindowSetAlwaysOnTop temporarily
+	// IMPORTANT: We do this synchronously now, no goroutines with delays
 	runtime.WindowSetAlwaysOnTop(ctx, true)
-	log.Println("ShowWindow: window set to always on top (temporary)")
+	runtime.WindowSetAlwaysOnTop(ctx, false)
 
 	// Step 4: Center the window
 	runtime.WindowCenter(ctx)
-	log.Println("ShowWindow: window centered")
 
-	// Step 5: Remove always on top after a short delay
-	// This ensures the window has time to appear before we remove the flag
-	go func() {
-		// Small delay to ensure window is fully visible
-		// Using a goroutine so we don't block the tray click handler
-		runtime.EventsEmit(ctx, "window:showing", nil)
+	// Emit event for frontend
+	runtime.EventsEmit(ctx, "window:showing", nil)
 
-		// Wait 200ms for the window manager to bring the window forward
-		// This delay is crucial on Windows to ensure the window fully appears
-		// before we remove the always-on-top flag
-		time.Sleep(200 * time.Millisecond)
-
-		runtime.WindowSetAlwaysOnTop(ctx, false)
-		log.Println("ShowWindow: always on top removed, window should now be visible")
-	}()
+	log.Println("ShowWindow: window shown successfully")
 }
 
 // ShowSettingsWindow shows the settings window from system tray
@@ -229,35 +351,33 @@ func ShowSettingsWindow(ctx context.Context) {
 
 	log.Println("ShowSettingsWindow: attempting to show settings from tray")
 
-	// Use the same robust window showing approach as ShowWindow
+	// Use defer with recover to prevent panics
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("ShowSettingsWindow: recovered from panic: %v", r)
+		}
+	}()
+
+	// Simplified approach - show window first
 	runtime.WindowUnminimise(ctx)
 	runtime.WindowShow(ctx)
 	runtime.WindowSetAlwaysOnTop(ctx, true)
+	runtime.WindowSetAlwaysOnTop(ctx, false)
 	runtime.WindowCenter(ctx)
 
-	log.Println("ShowSettingsWindow: window shown, navigating to settings")
+	// Navigate to settings using direct path manipulation
+	script := `
+		if (window.location.pathname !== '/settings') {
+			window.history.pushState({}, '', '/settings');
+			window.dispatchEvent(new PopStateEvent('popstate'));
+		}
+	`
+	runtime.WindowExecJS(ctx, script)
 
-	// Navigate to settings and remove always-on-top after delay
-	go func() {
-		runtime.EventsEmit(ctx, "window:showing", nil)
+	// Emit event for frontend
+	runtime.EventsEmit(ctx, "window:showing", nil)
 
-		// Small delay to ensure window is visible before navigation
-		time.Sleep(100 * time.Millisecond)
-
-		// Navigate to settings using direct path manipulation
-		script := `
-			if (window.location.pathname !== '/settings') {
-				window.history.pushState({}, '', '/settings');
-				window.dispatchEvent(new PopStateEvent('popstate'));
-			}
-		`
-		runtime.WindowExecJS(ctx, script)
-
-		// Wait a bit more before removing always-on-top
-		time.Sleep(100 * time.Millisecond)
-		runtime.WindowSetAlwaysOnTop(ctx, false)
-		log.Println("ShowSettingsWindow: navigation complete, always on top removed")
-	}()
+	log.Println("ShowSettingsWindow: window shown and navigated to settings")
 }
 
 // QuitApplication quits the application from system tray
@@ -271,8 +391,8 @@ func QuitApplication(ctx context.Context, performShutdown func()) {
 		performShutdown()
 	}
 
-	// Quit systray (this will exit the tray goroutine)
-	systray.Quit()
+	// Note: systray cleanup is handled by Manager.Cleanup()
+	// which is called from performShutdown (app.actualShutdown)
 
 	// Quit the application
 	runtime.Quit(ctx)

@@ -46,6 +46,7 @@ export function Dashboard() {
     refreshAll,
     isStarting,
     isStopping,
+    isRestarting,
   } = useServiceStatus({
     refreshInterval: 5000,
     fetchOnMount: true,
@@ -149,7 +150,7 @@ export function Dashboard() {
                       variant="danger"
                       glow
                       onClick={handleStopService}
-                      disabled={isStopping}
+                      disabled={isStopping || isRestarting}
                       className="flex-1 min-w-[140px]"
                     >
                       {isStopping ? t('dashboard.stopping') : t('dashboard.stopService')}
@@ -158,10 +159,10 @@ export function Dashboard() {
                       variant="secondary"
                       glow
                       onClick={handleRestartService}
-                      disabled={isStopping || isStarting}
+                      disabled={isStopping || isStarting || isRestarting}
                       className="flex-1 min-w-[140px]"
                     >
-                      {t('dashboard.restartService')}
+                      {isRestarting ? t('dashboard.restarting') : t('dashboard.restartService')}
                     </Button>
                   </>
                 ) : (
@@ -169,7 +170,7 @@ export function Dashboard() {
                     variant="primary"
                     glow
                     onClick={handleStartService}
-                    disabled={isStarting}
+                    disabled={isStarting || isRestarting}
                     className="w-full"
                   >
                     {isStarting ? t('dashboard.starting') : t('dashboard.startService')}

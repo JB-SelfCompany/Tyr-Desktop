@@ -145,11 +145,14 @@ func CreateBackup(ctx context.Context, cfg *core.Config, options models.BackupOp
 	}
 
 	// Create backup data
+	log.Printf("Creating backup with includeDatabase=%v", options.IncludeDatabase)
 	runtime.EventsEmit(ctx, "backup:progress", map[string]interface{}{"progress": 30, "message": "Creating backup data..."})
 	backupData, err := core.CreateBackup(cfg, options.IncludeDatabase, options.Password)
 	if err != nil {
+		log.Printf("ERROR: Failed to create backup: %v", err)
 		return models.ResultDTO{Success: false, Message: fmt.Sprintf("Failed to create backup: %v", err)}, nil
 	}
+	log.Printf("Backup data created successfully (%d bytes)", len(backupData))
 
 	// Write backup to file
 	runtime.EventsEmit(ctx, "backup:progress", map[string]interface{}{"progress": 80, "message": "Writing backup file..."})
@@ -164,6 +167,17 @@ func CreateBackup(ctx context.Context, cfg *core.Config, options models.BackupOp
 // RestoreBackup restores configuration and optionally database from an encrypted backup
 // Returns the restored config and result
 func RestoreBackup(ctx context.Context, options models.RestoreOptionsDTO) (*core.Config, models.ResultDTO, error) {
+	// CRITICAL: Load CURRENT config to get current database path
+	// We want to restore database to CURRENT location, not to location from backup
+	currentConfig, err := core.Load()
+	currentDatabasePath := ""
+	if err == nil {
+		currentDatabasePath = currentConfig.ServiceSettings.DatabasePath
+		log.Printf("[RestoreBackup] Current database path from config: %s", currentDatabasePath)
+	} else {
+		log.Printf("[RestoreBackup] Warning: Failed to load current config: %v - will use path from backup", err)
+	}
+
 	// Show open file dialog if path not provided
 	runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 10, "message": "Selecting backup file..."})
 	backupPath := options.BackupPath
@@ -197,34 +211,54 @@ func RestoreBackup(ctx context.Context, options models.RestoreOptionsDTO) (*core
 		return nil, models.ResultDTO{Success: false, Message: fmt.Sprintf("Failed to restore backup: %v", err)}, nil
 	}
 
+	// CRITICAL: Override database path with CURRENT path if available
+	// This ensures database is restored to user's current location, not backup location
+	if currentDatabasePath != "" && restoredConfig.ServiceSettings.DatabasePath != currentDatabasePath {
+		log.Printf("[RestoreBackup] Overriding database path from backup (%s) with current path (%s)",
+			restoredConfig.ServiceSettings.DatabasePath, currentDatabasePath)
+		restoredConfig.ServiceSettings.DatabasePath = currentDatabasePath
+	}
+
 	// IMPORTANT: Mark onboarding as complete BEFORE saving
 	// This ensures the user doesn't see onboarding screen again
 	restoredConfig.OnboardingComplete = true
 
-	// Save config to disk
-	runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 70, "message": "Saving configuration..."})
+	// CRITICAL: If database is included, restore it BEFORE saving config
+	// This ensures database path in restoredConfig is used for restoration
+	if dbData != nil && len(dbData) > 0 {
+		log.Printf("Restoring database (%d bytes) to path: %s", len(dbData), restoredConfig.ServiceSettings.DatabasePath)
+		runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 70, "message": "Restoring database..."})
+		if err := core.RestoreDatabase(restoredConfig, dbData); err != nil {
+			log.Printf("ERROR: Failed to restore database: %v", err)
+			return restoredConfig, models.ResultDTO{Success: false, Message: fmt.Sprintf("Failed to restore database: %v", err)}, nil
+		}
+		log.Println("Database restored successfully")
+	} else {
+		log.Printf("WARNING: No database data to restore (dbData nil=%v, len=%d)", dbData == nil, len(dbData))
+	}
+
+	// Save config to disk AFTER database restoration
+	runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 85, "message": "Saving configuration..."})
 	if err := restoredConfig.Save(); err != nil {
 		return nil, models.ResultDTO{Success: false, Message: fmt.Sprintf("Failed to save config: %v", err)}, nil
 	}
 
 	// CRITICAL: Reload config from disk to ensure in-memory state matches disk
 	// This is necessary because window.location.reload() doesn't restart the Go backend
-	runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 85, "message": "Reloading configuration..."})
+	runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 90, "message": "Reloading configuration..."})
 	reloadedConfig, err := core.Load()
 	if err != nil {
 		log.Printf("Failed to reload config from disk: %v", err)
 		return restoredConfig, models.ResultDTO{Success: true, Message: "Backup restored successfully"}, nil
 	}
 
-	// If database was included, restore it
-	if dbData != nil && len(dbData) > 0 {
-		runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 95, "message": "Restoring database..."})
-		if err := core.RestoreDatabase(reloadedConfig, dbData); err != nil {
-			log.Printf("Warning: Failed to restore database: %v", err)
-		}
-	}
+	log.Printf("Config reloaded from disk - DatabasePath: %s", reloadedConfig.ServiceSettings.DatabasePath)
 
 	runtime.EventsEmit(ctx, "restore:progress", map[string]interface{}{"progress": 100, "message": "Restore completed successfully!"})
+
+	// Emit config:restored event to notify frontend that configuration was restored
+	// Frontend should reload its config state without full page reload to avoid tray issues
+	runtime.EventsEmit(ctx, "config:restored", map[string]interface{}{"success": true})
 
 	return reloadedConfig, models.ResultDTO{Success: true, Message: "Backup restored successfully"}, nil
 }
@@ -334,13 +368,21 @@ func OpenDeltaChat(ctx context.Context, cfg *core.Config, sm *core.ServiceManage
 	// Generate dclogin:// URL with full IMAP/SMTP configuration
 	dcloginURL := generateDCLoginURL(mailAddress, password, imapHost, imapPort, smtpHost, smtpPort)
 
-	// Open DeltaChat directly
+	// Try to open DeltaChat directly with the dclogin:// URL
 	if err := openDCLoginURL(dcloginURL); err != nil {
-		// Copy to clipboard as fallback
+		// If opening fails, copy URL to clipboard as fallback
+		log.Printf("Failed to open DeltaChat automatically: %v", err)
+		log.Println("Copying dclogin URL to clipboard as fallback")
+
 		if ctx != nil {
-			runtime.ClipboardSetText(ctx, dcloginURL)
+			if clipErr := runtime.ClipboardSetText(ctx, dcloginURL); clipErr != nil {
+				return fmt.Errorf("failed to open DeltaChat and failed to copy URL to clipboard: %w", err)
+			}
 		}
-		return fmt.Errorf("failed to open DeltaChat - URL copied to clipboard: %w", err)
+
+		// Return error indicating that automatic opening failed but clipboard copy succeeded
+		// The frontend should show this as a warning/info message, not an error
+		return fmt.Errorf("could not open DeltaChat automatically - dclogin URL has been copied to clipboard. Please paste it in DeltaChat manually")
 	}
 
 	return nil

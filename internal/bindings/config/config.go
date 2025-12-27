@@ -33,6 +33,7 @@ func GetConfigDTO(cfg *core.Config) models.ConfigDTO {
 		AutoStart:          cfg.UIPreferences.AutoStart,
 		SMTPAddress:        cfg.ServiceSettings.SMTPAddress,
 		IMAPAddress:        cfg.ServiceSettings.IMAPAddress,
+		DatabasePath:       cfg.ServiceSettings.DatabasePath,
 	}
 }
 
@@ -59,6 +60,7 @@ func UpdateConfigFromDTO(cfg *core.Config, dto models.ConfigDTO) error {
 	// Update service settings
 	cfg.ServiceSettings.SMTPAddress = dto.SMTPAddress
 	cfg.ServiceSettings.IMAPAddress = dto.IMAPAddress
+	cfg.ServiceSettings.DatabasePath = dto.DatabasePath
 
 	return nil
 }

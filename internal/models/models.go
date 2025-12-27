@@ -64,6 +64,8 @@ type ConfigDTO struct {
 	SMTPAddress string `json:"smtpAddress"`
 	// IMAPAddress is the local IMAP server address
 	IMAPAddress string `json:"imapAddress"`
+	// DatabasePath is the path to the yggmail database file
+	DatabasePath string `json:"databasePath"`
 }
 
 // PeerConfigDTO represents a peer configuration

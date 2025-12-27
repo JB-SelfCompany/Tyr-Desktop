@@ -92,6 +92,7 @@ export default {
     addressCopied: "Address copied to clipboard",
     stopping: "Stopping...",
     restartService: "Restart Service",
+    restarting: "Restarting...",
     starting: "Starting...",
     serverConfiguration: "Server Configuration",
     smtpServer: "SMTP Server",
@@ -336,6 +337,12 @@ export default {
       githubRepository: "🌐 GitHub Repository",
       yggdrasilNetwork: "🔗 Yggdrasil Network",
       madeWith: "Made with ❤️ using Wails v2 + React + Y2K Futurism",
+    },
+    exitApplication: "Exit Application",
+    exitConfirmation: {
+      title: "Exit Application",
+      message: "Are you sure you want to exit Tyr? The service will be stopped and the application will close.",
+      confirm: "Exit",
     },
     backToSettings: "← Back to Settings",
     messages: {

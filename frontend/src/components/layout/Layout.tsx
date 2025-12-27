@@ -2,8 +2,10 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HolographicBorder } from './HolographicBorder';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
 import { useI18n } from '../../hooks/useI18n';
-import { GetVersion } from '../../../wailsjs/go/main/App';
+import { GetVersion, QuitApplication } from '../../../wailsjs/go/main/App';
 
 interface LayoutProps {
   children: ReactNode;
@@ -22,11 +24,21 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const { t } = useI18n();
   const [version, setVersion] = useState('...');
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Load version on component mount
   useEffect(() => {
     GetVersion().then(setVersion).catch(() => setVersion('unknown'));
   }, []);
+
+  // Handle application exit
+  const handleExit = () => {
+    try {
+      QuitApplication();
+    } catch (error) {
+      console.error('Failed to quit application:', error);
+    }
+  };
 
   const navItems = [
     { path: '/', label: t('navigation.dashboard'), icon: '🏠' },
@@ -89,6 +101,21 @@ export function Layout({ children }: LayoutProps) {
           })}
         </nav>
 
+        {/* Exit Button */}
+        <div className="pt-4">
+          <HolographicBorder borderWidth={1}>
+            <button
+              onClick={() => setShowExitModal(true)}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg w-full transition-all bg-md-light-errorContainer/30 dark:bg-md-dark-errorContainer/20 hover:bg-md-light-errorContainer/50 dark:hover:bg-md-dark-errorContainer/30"
+            >
+              <span className="text-2xl">🚪</span>
+              <span className="font-futuristic text-md-light-error dark:text-md-dark-error">
+                {t('app.quit')}
+              </span>
+            </button>
+          </HolographicBorder>
+        </div>
+
         {/* Version Info */}
         <div className="pt-6 mt-auto border-t border-md-light-outline/30 dark:border-md-dark-outline/30">
           <p className="text-xs text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant text-center">Version {version}</p>
@@ -111,6 +138,37 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </motion.div>
       </main>
+
+      {/* Exit Confirmation Modal */}
+      <Modal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        title={t('settings.exitConfirmation.title')}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="bg-md-light-primaryContainer/50 dark:bg-md-dark-primaryContainer/30 border border-md-light-primary/30 dark:border-md-dark-primary/30 rounded-lg p-4">
+            <p className="text-md-light-onSurface dark:text-md-dark-onSurface">
+              {t('settings.exitConfirmation.message')}
+            </p>
+          </div>
+          <div className="flex gap-3 justify-end pt-4">
+            <Button variant="ghost" onClick={() => setShowExitModal(false)}>
+              {t('action.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              glow
+              onClick={() => {
+                setShowExitModal(false);
+                handleExit();
+              }}
+            >
+              {t('settings.exitConfirmation.confirm')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

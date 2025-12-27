@@ -162,6 +162,11 @@ func (a *App) actualShutdown() {
 		}
 	}
 
+	// Cleanup system tray to prevent resource leaks
+	if a.trayManager != nil {
+		a.trayManager.Cleanup()
+	}
+
 	if a.config != nil {
 		if err := a.config.Save(); err != nil {
 			log.Printf("Failed to save config: %v", err)
@@ -187,6 +192,11 @@ func (a *App) shutdown(ctx context.Context) {
 		default:
 			close(a.statusMonitorShutdown)
 		}
+	}
+
+	// Cleanup system tray to prevent resource leaks
+	if a.trayManager != nil {
+		a.trayManager.Cleanup()
 	}
 
 	if a.config != nil {
@@ -223,9 +233,21 @@ func (a *App) OnStartupComplete() error {
 		return fmt.Errorf("failed to start service: %w", err)
 	}
 
+	// Update tray manager with new service manager
+	if a.trayManager != nil {
+		a.trayManager.SetServiceManager(a.serviceManager)
+	}
+
+	// Start event monitoring if not already running
 	if !a.eventMonitorRunning {
 		a.eventMonitorRunning = true
 		go a.startEventMonitoring()
+	}
+
+	// Start status monitoring for system tray updates
+	if !a.statusMonitorRunning {
+		a.statusMonitorRunning = true
+		go a.startStatusMonitoring()
 	}
 
 	return nil
@@ -268,22 +290,22 @@ func (a *App) ToggleWindowVisibility() {
 
 	log.Println("ToggleWindowVisibility: showing and focusing window")
 
-	// Use the same robust approach as tray.ShowWindow
+	// Use defer with recover to prevent panics
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("ToggleWindowVisibility: recovered from panic: %v", r)
+		}
+	}()
+
+	// Simplified approach - same as tray.ShowWindow
 	runtime.WindowUnminimise(a.ctx)
 	runtime.WindowShow(a.ctx)
 	runtime.WindowSetAlwaysOnTop(a.ctx, true)
+	runtime.WindowSetAlwaysOnTop(a.ctx, false)
 	runtime.WindowCenter(a.ctx)
+	runtime.EventsEmit(a.ctx, "window:showing", nil)
 
-	// Remove always-on-top after a short delay
-	go func() {
-		runtime.EventsEmit(a.ctx, "window:showing", nil)
-
-		// Wait 200ms for window to fully appear before removing always-on-top
-		time.Sleep(200 * time.Millisecond)
-
-		runtime.WindowSetAlwaysOnTop(a.ctx, false)
-		log.Println("ToggleWindowVisibility: window should now be visible and focused")
-	}()
+	log.Println("ToggleWindowVisibility: window shown successfully")
 }
 
 // getPeerDiscoveryContext returns a context for peer discovery operations
@@ -538,7 +560,14 @@ func (a *App) RestartService() error {
 		return err
 	}
 
-	a.UpdateSystemTrayStatus()
+	// Update system tray status and menu after restart
+	// Use goroutine to avoid blocking and allow service to fully initialize
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		a.UpdateSystemTrayStatus()
+		a.UpdateSystemTrayMenu()
+	}()
+
 	return nil
 }
 
@@ -611,11 +640,112 @@ func (a *App) OpenURL(url string) error {
 
 // CreateBackup creates an encrypted backup of the configuration and optionally database
 func (a *App) CreateBackup(options BackupOptionsDTO) (ResultDTO, error) {
-	return system.CreateBackup(a.ctx, a.config, options)
+	// CRITICAL: If including database, must close service to release database file
+	// SQLite allows only one writer at a time, and reading while service has it open may fail
+	wasRunning := false
+	if options.IncludeDatabase && a.serviceManager != nil && a.serviceManager.IsRunning() {
+		log.Println("[CreateBackup] Service is running and database will be included - closing service temporarily...")
+		wasRunning = true
+
+		// Cancel any peer discovery operations
+		a.cancelPeerDiscoveryOperations()
+
+		// Stop service gracefully
+		if err := a.serviceManager.SoftStop(); err != nil {
+			log.Printf("Warning: failed to soft stop service: %v, trying normal stop", err)
+			if err := a.serviceManager.Stop(); err != nil {
+				return ResultDTO{Success: false, Message: fmt.Sprintf("Failed to stop service before backup: %v", err)}, nil
+			}
+		}
+
+		// Wait for service to fully stop
+		for i := 0; i < 50; i++ {
+			if !a.serviceManager.IsRunning() {
+				log.Printf("Service stopped after %d ms", i*200)
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+
+		// CRITICAL: Close service to release database file for reading
+		log.Println("[CreateBackup] Closing service to release database file...")
+		if err := a.serviceManager.CloseService(); err != nil {
+			log.Printf("Warning: failed to close service: %v", err)
+		}
+
+		// Additional delay to ensure database is fully released
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	// Create backup
+	result, err := system.CreateBackup(a.ctx, a.config, options)
+
+	// Restart service if it was running
+	if wasRunning && result.Success && a.serviceManager != nil {
+		log.Println("[CreateBackup] Reinitializing and restarting service after backup...")
+
+		// Reinitialize service
+		if err := a.serviceManager.Initialize(); err != nil {
+			log.Printf("Warning: Failed to reinitialize service after backup: %v", err)
+			return result, nil
+		}
+
+		// Restart service
+		if err := a.serviceManager.Start(); err != nil {
+			log.Printf("Warning: Failed to restart service after backup: %v", err)
+			return result, nil
+		}
+
+		log.Println("[CreateBackup] Service restarted successfully after backup")
+	}
+
+	return result, err
 }
 
 // RestoreBackup restores configuration and optionally database from an encrypted backup
 func (a *App) RestoreBackup(options RestoreOptionsDTO) (ResultDTO, error) {
+	// CRITICAL: Stop and close service before restoring to prevent database conflicts
+	// The native yggmail library keeps database file open until Close() is called
+	// Restoring database while it's open will cause corruption or service will read old keys
+	wasRunning := false
+	if a.serviceManager != nil && a.serviceManager.IsRunning() {
+		log.Println("Service is running, stopping before restore...")
+		runtime.EventsEmit(a.ctx, "restore:progress", map[string]interface{}{"progress": 5, "message": "Stopping service..."})
+		wasRunning = true
+
+		// Cancel any peer discovery operations
+		a.cancelPeerDiscoveryOperations()
+
+		// Stop service gracefully
+		if err := a.serviceManager.SoftStop(); err != nil {
+			log.Printf("Warning: failed to soft stop service: %v, trying normal stop", err)
+			if err := a.serviceManager.Stop(); err != nil {
+				return ResultDTO{Success: false, Message: fmt.Sprintf("Failed to stop service before restore: %v", err)}, nil
+			}
+		}
+
+		// Wait for service to fully stop
+		for i := 0; i < 50; i++ {
+			if !a.serviceManager.IsRunning() {
+				log.Printf("Service stopped after %d ms", i*200)
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+
+		// CRITICAL: Close service to release database file
+		// Without this, the database file remains open and restoring will write to a locked file
+		log.Println("Closing service to release database file...")
+		runtime.EventsEmit(a.ctx, "restore:progress", map[string]interface{}{"progress": 8, "message": "Releasing database..."})
+		if err := a.serviceManager.CloseService(); err != nil {
+			log.Printf("Warning: failed to close service: %v", err)
+		}
+
+		// Additional delay to ensure database is fully released
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	// Restore backup (config and database)
 	restoredConfig, result, err := system.RestoreBackup(a.ctx, options)
 	if err != nil {
 		return result, err
@@ -624,14 +754,69 @@ func (a *App) RestoreBackup(options RestoreOptionsDTO) (ResultDTO, error) {
 	// Update app's config reference if restore was successful
 	if restoredConfig != nil {
 		a.config = restoredConfig
+
+		// CRITICAL: Reset PasswordInitialized flag to ensure password is set in restored database
+		// The restored database needs the password to be set, even if it was previously initialized
+		a.config.ServiceSettings.PasswordInitialized = false
+		if err := a.config.Save(); err != nil {
+			log.Printf("Warning: failed to save PasswordInitialized reset: %v", err)
+		}
+	}
+
+	// If restore was successful and service was running, reinitialize and restart
+	if result.Success && wasRunning && a.serviceManager != nil {
+		log.Println("Reinitializing service after restore...")
+		runtime.EventsEmit(a.ctx, "restore:progress", map[string]interface{}{"progress": 92, "message": "Reinitializing service..."})
+
+		// CRITICAL: Create NEW ServiceManager with restored config
+		// Old ServiceManager has reference to OLD config with wrong database path!
+		log.Printf("Creating new ServiceManager with restored config (DatabasePath: %s)", a.config.ServiceSettings.DatabasePath)
+		newServiceManager, err := core.NewServiceManager(a.config)
+		if err != nil {
+			log.Printf("Warning: Failed to create new service manager after restore: %v", err)
+			return result, nil
+		}
+		a.serviceManager = newServiceManager
+
+		// Initialize service to load restored keys from database
+		// This creates a NEW yggmail.Service instance that opens the restored database
+		if err := a.serviceManager.Initialize(); err != nil {
+			log.Printf("Warning: Failed to initialize service after restore: %v", err)
+			return result, nil
+		}
+
+		// Restart service
+		log.Println("Restarting service after restore...")
+		runtime.EventsEmit(a.ctx, "restore:progress", map[string]interface{}{"progress": 95, "message": "Restarting service..."})
+
+		if err := a.serviceManager.Start(); err != nil {
+			log.Printf("Warning: Failed to start service after restore: %v", err)
+			return result, nil
+		}
+
+		// Wait a moment for service to fully start
+		time.Sleep(1 * time.Second)
+
+		// Update system tray
+		go func() {
+			time.Sleep(500 * time.Millisecond)
+			a.UpdateSystemTrayStatus()
+			a.UpdateSystemTrayMenu()
+		}()
+
+		log.Println("Service restarted successfully after restore")
 	}
 
 	return result, nil
 }
 
 // QuitApplication gracefully quits the application
+// This is called from the UI "Quit" button and should perform full shutdown
 func (a *App) QuitApplication() {
-	system.QuitApplication(a.ctx)
+	// Set allowQuit flag to true so beforeClose() doesn't just hide the window
+	a.allowQuit = true
+	// Perform actual shutdown (stops service, saves state, etc.)
+	tray.QuitApplication(a.ctx, a.actualShutdown)
 }
 
 // HideWindow hides the application window

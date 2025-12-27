@@ -4,8 +4,8 @@ go 1.25.5
 
 require (
 	fyne.io/fyne/v2 v2.7.1
+	fyne.io/systray v1.12.0
 	github.com/JB-SelfCompany/yggpeers v0.0.0-20251216174745-cdf3f5f8f68d
-	github.com/energye/systray v1.0.2
 	github.com/neilalexander/yggmail v0.0.0-20251202230222-0fe5375737a3
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/wailsapp/wails/v2 v2.11.0
@@ -66,7 +66,6 @@ require (
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
-	github.com/tevino/abool v0.0.0-20220530134649-2bfc934cb23c // indirect
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect

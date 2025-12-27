@@ -151,6 +151,22 @@ chmod +x build-linux.sh
 
 Binary will be created at `build/bin/`
 
+## 🔄 Updating
+
+To update Tyr Desktop to a new version on both Windows and Linux:
+
+1. **Build the new binary** using the build scripts:
+   - **Windows**: Run `build-windows.bat`
+   - **Linux**: Run `./build-linux.sh`
+
+2. **Replace the old executable** with the newly compiled binary from `build/bin/`
+
+3. **Delete the old version** binary
+
+Your configuration, database, and all settings will be preserved automatically - they're stored separately in the config directory and won't be affected by replacing the executable.
+
+> **Note**: No need to stop the service before updating. Simply close the application, replace the binary, and restart.
+
 ## 📱 Quick Start
 
 ### First Run Setup

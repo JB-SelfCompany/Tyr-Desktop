@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime';
 import { motion } from 'framer-motion';
 import {
@@ -9,6 +10,7 @@ import {
   LoadingSpinner,
 } from '../components';
 import { useI18n } from '../hooks/useI18n';
+import { useConfig } from '../hooks/useConfig';
 import {
   CreateBackup,
   RestoreBackup,
@@ -44,6 +46,9 @@ import { showSuccess, showError } from '../store/uiStore';
  */
 export function Backup() {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const { loadConfig } = useConfig({ loadOnMount: false });
+
   // Create backup state
   const [createPassword, setCreatePassword] = useState('');
   const [confirmCreatePassword, setConfirmCreatePassword] = useState('');
@@ -76,12 +81,26 @@ export function Backup() {
       setRestoreProgressMessage(data.message);
     };
 
+    const configRestoredHandler = async () => {
+      // Configuration was restored successfully
+      // Reload config from backend and navigate to dashboard
+      await loadConfig();
+      setIsRestoring(false);
+      setRestoreProgress(0);
+      setRestoreProgressMessage('');
+      showSuccess(t('backup.messages.backupRestored'), t('backup.messages.backupRestoredMessage'));
+      // Navigate to dashboard to see restored settings
+      navigate('/');
+    };
+
     EventsOn('backup:progress', backupProgressHandler);
     EventsOn('restore:progress', restoreProgressHandler);
+    EventsOn('config:restored', configRestoredHandler);
 
     return () => {
       EventsOff('backup:progress');
       EventsOff('restore:progress');
+      EventsOff('config:restored');
     };
   }, []);
 
@@ -177,17 +196,16 @@ export function Backup() {
       };
       await RestoreBackup(options);
 
-      setTimeout(() => {
-        showSuccess(t('backup.messages.backupRestored'), t('backup.messages.backupRestoredMessage'));
-        setRestoreFilePath('');
-        setRestorePassword('');
-        setIsRestoring(false);
-        setRestoreProgress(0);
-        setRestoreProgressMessage('');
+      // Reset restore form state
+      setRestoreFilePath('');
+      setRestorePassword('');
 
-        // Reload the page to apply restored configuration
-        window.location.reload();
-      }, 500);
+      // NOTE: config:restored event handler will:
+      // - Reload config from backend
+      // - Navigate to dashboard
+      // - Reset loading states
+      // - Show success message
+      // This avoids full page reload which causes system tray re-initialization issues
     } catch (error) {
       setIsRestoring(false);
       setRestoreProgress(0);

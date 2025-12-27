@@ -106,7 +106,6 @@ export function Settings() {
     }
   };
 
-
   // Handle password change
   const handleChangePassword = async () => {
     if (!currentPassword) {
