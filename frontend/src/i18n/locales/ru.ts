@@ -115,7 +115,7 @@ export default {
     goToSettings: "Перейти к Настройкам",
     messages: {
       copied: "Скопировано",
-      copiedToClipboard: "{{field}} скопировано в буфер обмена",
+      copiedToClipboard: "Скопировано в буфер обмена",
       copyFailed: "Ошибка копирования",
       copyFailedMessage: "Не удалось скопировать в буфер обмена",
       noMailAddress: "Нет адреса почты",
@@ -136,6 +136,7 @@ export default {
       serviceRestartedMessage: "Служба успешно перезапущена",
       restartFailed: "Ошибка перезапуска",
       restartFailedMessage: "Не удалось перезапустить службу",
+      mailAddress: "Почтовый адрес",
       smtpAddress: "SMTP адрес",
       imapAddress: "IMAP адрес",
       databasePath: "Путь к базе данных",
@@ -358,6 +359,8 @@ export default {
       passwordChanged: "Пароль успешно изменен",
       passwordChangeFailed: "Не удалось изменить пароль",
       passwordRequired: "Пожалуйста, введите текущий пароль для перегенерации ключей",
+      keysRegenerated: "Ключи перегенерированы",
+      keysRegeneratedMessage: "Ключи шифрования успешно перегенерированы. Ваш почтовый адрес изменился.",
       notImplemented: "Функциональность перегенерации ключей пока недоступна",
       keyRegenerationFailed: "Не удалось перегенерировать ключи",
       validationError: "Ошибка валидации",
@@ -386,6 +389,7 @@ export default {
       disconnected: "Отключен",
       connecting: "Подключение",
       offline: "Не в сети",
+      disabled: "Отключен",
     },
     card: {
       latency: "Задержка",

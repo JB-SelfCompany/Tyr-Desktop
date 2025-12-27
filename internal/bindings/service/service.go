@@ -13,11 +13,11 @@ import (
 // InitializeService initializes the yggmail service
 func InitializeService(sm *core.ServiceManager) error {
 	if sm == nil {
-		return fmt.Errorf("service manager not initialized")
+		return fmt.Errorf("Service manager is not initialized. Please restart the application.")
 	}
 
 	if err := sm.Initialize(); err != nil {
-		return fmt.Errorf("failed to initialize service: %w", err)
+		return fmt.Errorf("Failed to initialize the service. Please check your configuration and try again. Error: %v", err)
 	}
 
 	log.Println("Service initialized successfully")
@@ -29,25 +29,25 @@ func InitializeService(sm *core.ServiceManager) error {
 // Returns true if event monitoring should be started
 func StartService(sm *core.ServiceManager) (shouldStartMonitoring bool, err error) {
 	if sm == nil {
-		return false, fmt.Errorf("service manager not initialized")
+		return false, fmt.Errorf("Service manager is not initialized. Please restart the application.")
 	}
 
 	if sm.IsRunning() {
-		return false, fmt.Errorf("service is already running")
+		return false, fmt.Errorf("Service is already running.")
 	}
 
 	// Check if initialized
 	if sm.GetEventChannels() == nil {
 		log.Println("Service not initialized, initializing before start...")
 		if err := sm.Initialize(); err != nil {
-			return false, fmt.Errorf("failed to initialize service: %w", err)
+			return false, fmt.Errorf("Failed to initialize the service before starting. Error: %v", err)
 		}
 		log.Println("Service initialized successfully")
 		shouldStartMonitoring = true
 	}
 
 	if err := sm.Start(); err != nil {
-		return false, fmt.Errorf("failed to start service: %w", err)
+		return false, fmt.Errorf("Failed to start the service. Please check that ports are not in use and try again. Error: %v", err)
 	}
 
 	log.Println("Service started successfully")
@@ -57,14 +57,14 @@ func StartService(sm *core.ServiceManager) (shouldStartMonitoring bool, err erro
 // StopService stops the yggmail service gracefully
 func StopService(sm *core.ServiceManager) error {
 	if sm == nil {
-		return fmt.Errorf("service manager not initialized")
+		return fmt.Errorf("Service manager is not initialized. Please restart the application.")
 	}
 
 	// Use SoftStop to gracefully disconnect peers first
 	if err := sm.SoftStop(); err != nil {
 		log.Printf("Warning: failed to soft stop service: %v, trying normal stop", err)
 		if err := sm.Stop(); err != nil {
-			return fmt.Errorf("failed to stop service: %w", err)
+			return fmt.Errorf("Failed to stop the service. Error: %v", err)
 		}
 	}
 
@@ -77,7 +77,7 @@ func StopService(sm *core.ServiceManager) error {
 // Based on Android implementation pattern
 func RestartService(sm *core.ServiceManager) error {
 	if sm == nil {
-		return fmt.Errorf("service manager not initialized")
+		return fmt.Errorf("Service manager is not initialized. Please restart the application.")
 	}
 
 	log.Println("Restarting service...")
@@ -88,7 +88,7 @@ func RestartService(sm *core.ServiceManager) error {
 		if err := sm.SoftStop(); err != nil {
 			log.Printf("Warning: failed to soft stop service: %v, trying normal stop", err)
 			if err := sm.Stop(); err != nil {
-				return fmt.Errorf("failed to stop service: %w", err)
+				return fmt.Errorf("Failed to stop the service for restart. Error: %v", err)
 			}
 		}
 
@@ -104,7 +104,7 @@ func RestartService(sm *core.ServiceManager) error {
 
 			// Timeout after 10 seconds
 			if i == 49 {
-				return fmt.Errorf("service did not stop within 10 seconds")
+				return fmt.Errorf("Service did not stop within 10 seconds. Please try stopping it manually first.")
 			}
 		}
 
@@ -116,19 +116,19 @@ func RestartService(sm *core.ServiceManager) error {
 	// Step 4: Reinitialize service
 	log.Println("Reinitializing service...")
 	if err := sm.Initialize(); err != nil {
-		return fmt.Errorf("failed to reinitialize service: %w", err)
+		return fmt.Errorf("Failed to reinitialize the service. Error: %v", err)
 	}
 
 	// Step 5: Start service
 	log.Println("Starting service...")
 	if err := sm.Start(); err != nil {
-		return fmt.Errorf("failed to start service: %w", err)
+		return fmt.Errorf("Failed to start the service after restart. Please check that ports are not in use. Error: %v", err)
 	}
 
 	// Step 6: Verify service started successfully
 	time.Sleep(1 * time.Second)
 	if !sm.IsRunning() {
-		return fmt.Errorf("service failed to start after restart")
+		return fmt.Errorf("Service failed to start after restart. Please try starting it manually.")
 	}
 
 	log.Println("Service restarted successfully")
@@ -215,11 +215,11 @@ func GetPeerStatsDTO(sm *core.ServiceManager, cfg *core.Config) []models.PeerInf
 // HotReloadPeers reloads the peer list without stopping the service
 func HotReloadPeers(sm *core.ServiceManager, cfg *core.Config) error {
 	if sm == nil {
-		return fmt.Errorf("service manager not initialized")
+		return fmt.Errorf("Service manager is not initialized. Please restart the application.")
 	}
 
 	if !sm.IsRunning() {
-		return fmt.Errorf("service is not running")
+		return fmt.Errorf("Cannot reload peers: service is not running. Please start the service first.")
 	}
 
 	// Get enabled peers from config
@@ -234,7 +234,7 @@ func HotReloadPeers(sm *core.ServiceManager, cfg *core.Config) error {
 	}
 
 	if err := sm.HotReloadPeers(peers); err != nil {
-		return fmt.Errorf("failed to hot-reload peers: %w", err)
+		return fmt.Errorf("Failed to reload peers. Error: %v", err)
 	}
 
 	log.Println("Peers hot-reloaded successfully")

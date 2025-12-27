@@ -115,7 +115,7 @@ export default {
     goToSettings: "Go to Settings",
     messages: {
       copied: "Copied",
-      copiedToClipboard: "{{field}} copied to clipboard",
+      copiedToClipboard: "Copied to clipboard",
       copyFailed: "Copy Failed",
       copyFailedMessage: "Failed to copy to clipboard",
       noMailAddress: "No Mail Address",
@@ -136,6 +136,7 @@ export default {
       serviceRestartedMessage: "Service restarted successfully",
       restartFailed: "Restart Failed",
       restartFailedMessage: "Failed to restart service",
+      mailAddress: "Mail Address",
       smtpAddress: "SMTP Address",
       imapAddress: "IMAP Address",
       databasePath: "Database Path",
@@ -336,7 +337,7 @@ export default {
       description: "A decentralized P2P email client for the Yggdrasil network. Secure, private, and built for the future.",
       githubRepository: "🌐 GitHub Repository",
       yggdrasilNetwork: "🔗 Yggdrasil Network",
-      madeWith: "Made with ❤️ using Wails v2 + React + Y2K Futurism",
+      madeWith: "Made with ❤️ using Wails v2 + React",
     },
     exitApplication: "Exit Application",
     exitConfirmation: {
@@ -358,6 +359,8 @@ export default {
       passwordChanged: "Password changed successfully",
       passwordChangeFailed: "Failed to change password",
       passwordRequired: "Please enter your current password to regenerate keys",
+      keysRegenerated: "Keys Regenerated",
+      keysRegeneratedMessage: "Encryption keys have been successfully regenerated. Your mail address has changed.",
       notImplemented: "Key regeneration functionality is not yet available",
       keyRegenerationFailed: "Failed to regenerate keys",
       validationError: "Validation Error",
@@ -386,6 +389,7 @@ export default {
       disconnected: "Disconnected",
       connecting: "Connecting",
       offline: "Offline",
+      disabled: "Disabled",
     },
     card: {
       latency: "Latency",

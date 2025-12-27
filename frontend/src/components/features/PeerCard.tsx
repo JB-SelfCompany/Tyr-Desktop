@@ -7,6 +7,7 @@ import { useI18n } from '../../hooks/useI18n';
 
 export interface PeerInfo {
   address: string;
+  enabled: boolean;
   connected: boolean;
   latency?: number;
   rxBytes?: number;
@@ -73,16 +74,28 @@ export const PeerCard: React.FC<PeerCardProps> = React.memo(({
             <p className="text-sm font-mono text-md-light-onSurface dark:text-md-dark-onSurface truncate" title={peer.address}>
               {truncateAddress(peer.address, 30)}
             </p>
+            {!peer.enabled && (
+              <p className="text-xs text-md-light-outline dark:text-md-dark-outline mt-1">
+                {t('peers.status.disabled')}
+              </p>
+            )}
           </div>
           <Badge
-            variant={peer.connected ? 'success' : 'default'}
+            variant={peer.connected ? 'success' : peer.enabled ? 'warning' : 'default'}
             size="sm"
             animated={false}
           >
             <span className="text-base leading-none">
-              {peer.connected ? '●' : '○'}
+              {peer.connected ? '●' : peer.enabled ? '◐' : '○'}
             </span>
-            <span>{peer.connected ? t('peers.status.connected') : t('peers.status.offline')}</span>
+            <span>
+              {peer.connected
+                ? t('peers.status.connected')
+                : peer.enabled
+                  ? t('peers.status.offline')
+                  : t('peers.status.disabled')
+              }
+            </span>
           </Badge>
         </div>
 
@@ -158,7 +171,7 @@ export const PeerCard: React.FC<PeerCardProps> = React.memo(({
                 onClick={() => onToggle(peer.address)}
                 fullWidth
               >
-                {peer.connected ? t('peers.card.disable') : t('peers.card.enable')}
+                {peer.enabled ? t('peers.card.disable') : t('peers.card.enable')}
               </Button>
             )}
             {onRemove && (

@@ -27,7 +27,7 @@ import {
   RemovePeer,
 } from '../../wailsjs/go/main/App';
 import { LogPrint } from '../wailsjs/runtime/runtime';
-import { showSuccess, showError } from '../store/uiStore';
+import { toast } from '../components/ui/Toast';
 import type { RestoreOptionsDTO } from '../../wailsjs/go/main/models';
 import type { DiscoveredPeer, PeerDiscoveryProgress, PeerDiscoveryResult } from '../../wailsjs/go/main/models';
 import { EventsOn, EventsOff } from '../wailsjs/runtime/runtime';
@@ -142,7 +142,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   // Validate peer selection
   const validatePeers = (): boolean => {
     if (!useDefaultPeers && selectedPeers.length === 0) {
-      showError(t('onboarding.error.noPeersSelected'), '');
+      toast.error(t('onboarding.error.noPeersSelected'));
       return false;
     }
     return true;
@@ -151,7 +151,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   // Handle peer discovery
   const handleFindPeers = async () => {
     if (selectedProtocols.length === 0) {
-      showError(t('peers.discovery.noProtocolsSelected'), '');
+      toast.error(t('peers.discovery.noProtocolsSelected'));
       return;
     }
 
@@ -170,18 +170,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         LogPrint(`[Onboarding] Found ${result.available} peers out of ${result.total}`);
         setDiscoveredPeers(result.peers);
         setHasCachedPeers(false); // Not from cache
-        showSuccess(
-          t('peers.discovery.searchComplete'),
+        toast.success(
           t('peers.discovery.foundPeers')
             .replace('{{count}}', String(result.available))
             .replace('{{total}}', String(result.total))
         );
       } else {
-        showError(t('onboarding.discovery.noPeersFound'), '');
+        toast.error(t('onboarding.discovery.noPeersFound'));
       }
     } catch (error) {
       LogPrint(`[Onboarding] Peer discovery error: ${error}`);
-      showError(t('peers.discovery.searchFailed'), error instanceof Error ? error.message : '');
+      toast.error(error instanceof Error ? error.message : t('peers.discovery.searchFailed'));
     } finally {
       setIsSearching(false);
       setSearchProgress({ current: 0, total: 0, available_count: 0 });
@@ -208,9 +207,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         setBackupFilePath(filePath);
       }
     } catch (error) {
-      showError(
-        t('onboarding.messages.fileSelectionFailed'),
-        error instanceof Error ? error.message : ''
+      toast.error(
+        error instanceof Error ? error.message : t('onboarding.messages.fileSelectionFailed')
       );
     }
   };
@@ -218,12 +216,12 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   // Handle restore from backup
   const handleRestoreBackup = async () => {
     if (!backupFilePath) {
-      showError(t('onboarding.messages.fileRequired'), t('onboarding.messages.fileRequiredMessage'));
+      toast.error(t('onboarding.messages.fileRequiredMessage'));
       return;
     }
 
     if (!restorePassword) {
-      showError(t('onboarding.messages.passwordRequired'), t('onboarding.messages.passwordRequiredMessage'));
+      toast.error(t('onboarding.messages.passwordRequiredMessage'));
       return;
     }
 
@@ -239,12 +237,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       // Initialize service manager after restore
       await OnStartupComplete();
 
-      showSuccess(t('onboarding.messages.setupComplete'), t('onboarding.messages.setupCompleteMessage'));
+      toast.success(t('onboarding.messages.setupCompleteMessage'));
       await onComplete();
     } catch (error) {
       LogPrint(`[Onboarding] Restore error: ${error}`);
-      showError(
-        t('onboarding.messages.setupFailed'),
+      toast.error(
         error instanceof Error ? error.message : t('onboarding.messages.setupFailedMessage')
       );
     } finally {
@@ -314,12 +311,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         LogPrint('[Onboarding] Initializing service...');
         await OnStartupComplete();
 
-        showSuccess(t('onboarding.messages.setupComplete'), t('onboarding.messages.setupCompleteMessage'));
+        toast.success(t('onboarding.messages.setupCompleteMessage'));
         await onComplete();
       } catch (error) {
         LogPrint(`[Onboarding] Setup error: ${error}`);
-        showError(
-          t('onboarding.messages.setupFailed'),
+        toast.error(
           error instanceof Error ? error.message : t('onboarding.messages.setupFailedMessage')
         );
       } finally {

@@ -17,6 +17,7 @@ import {
   ShowSaveFileDialog,
   ShowOpenFileDialog,
 } from '../../wailsjs/go/main/App';
+import { toast } from '../components/ui/Toast';
 // Import types from models
 type BackupOptionsDTO = {
   includeDatabase: boolean;
@@ -27,7 +28,6 @@ type RestoreOptionsDTO = {
   backupPath: string;
   password: string;
 };
-import { showSuccess, showError } from '../store/uiStore';
 
 /**
  * Backup Screen - Backup and restore functionality
@@ -88,7 +88,7 @@ export function Backup() {
       setIsRestoring(false);
       setRestoreProgress(0);
       setRestoreProgressMessage('');
-      showSuccess(t('backup.messages.backupRestored'), t('backup.messages.backupRestoredMessage'));
+      toast.success(t('backup.messages.backupRestoredMessage'));
       // Navigate to dashboard to see restored settings
       navigate('/');
     };
@@ -144,7 +144,7 @@ export function Backup() {
         await CreateBackup(options);
 
         setTimeout(() => {
-          showSuccess(t('backup.messages.backupCreated'), t('backup.messages.backupCreatedMessage', { path: savePath }));
+          toast.success(t('backup.messages.backupCreatedMessage', { path: savePath }));
           setCreatePassword('');
           setConfirmCreatePassword('');
           setIsCreating(false);
@@ -157,7 +157,7 @@ export function Backup() {
     } catch (error) {
       setIsCreating(false);
       setCreateProgress(0);
-      showError(t('backup.messages.backupFailed'), error instanceof Error ? error.message : t('backup.messages.backupFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('backup.messages.backupFailedMessage'));
     }
   };
 
@@ -169,7 +169,7 @@ export function Backup() {
         setRestoreFilePath(filePath);
       }
     } catch (error) {
-      showError(t('backup.messages.fileSelectionFailed'), error instanceof Error ? error.message : t('backup.messages.fileSelectionFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('backup.messages.fileSelectionFailedMessage'));
     }
   };
 
@@ -177,11 +177,11 @@ export function Backup() {
   const handleRestoreBackup = async () => {
     // Validate
     if (!restoreFilePath) {
-      showError(t('backup.messages.validationError'), t('backup.messages.selectBackupFile'));
+      toast.error(t('backup.messages.selectBackupFile'));
       return;
     }
     if (!restorePassword) {
-      showError(t('backup.messages.validationError'), t('backup.messages.enterPasswordMessage'));
+      toast.error(t('backup.messages.enterPasswordMessage'));
       return;
     }
 
@@ -210,7 +210,7 @@ export function Backup() {
       setIsRestoring(false);
       setRestoreProgress(0);
       setRestoreProgressMessage('');
-      showError(t('backup.messages.restoreFailed'), error instanceof Error ? error.message : t('backup.messages.restoreFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('backup.messages.restoreFailedMessage'));
     }
   };
 

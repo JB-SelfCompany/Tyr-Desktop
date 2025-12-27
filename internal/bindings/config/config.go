@@ -228,22 +228,22 @@ func ChangePassword(cfg *core.Config, sm *core.ServiceManager, currentPassword, 
 	// Verify current password by comparing with stored password
 	storedPassword, err := cfg.GetPassword()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve stored password: %w", err)
+		return fmt.Errorf("Failed to retrieve password from keyring. Please try again or restart the application.")
 	}
 
 	if storedPassword != currentPassword {
-		return fmt.Errorf("current password is incorrect")
+		return fmt.Errorf("Current password is incorrect. Please check your password and try again.")
 	}
 
 	// Update password using service manager
 	if sm != nil {
 		if err := sm.UpdatePassword(newPassword); err != nil {
-			return fmt.Errorf("failed to update password: %w", err)
+			return fmt.Errorf("Failed to update password in the service. Error: %v", err)
 		}
 	} else {
 		// Fallback if service manager is not available
 		if err := cfg.SetPassword(newPassword); err != nil {
-			return fmt.Errorf("failed to set password: %w", err)
+			return fmt.Errorf("Failed to save password to keyring. Error: %v", err)
 		}
 	}
 
@@ -269,11 +269,11 @@ func RegenerateKeys(cfg *core.Config, sm *core.ServiceManager, password string) 
 	// Verify password before allowing destructive operation
 	storedPassword, err := cfg.GetPassword()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve stored password: %w", err)
+		return fmt.Errorf("Failed to retrieve password from keyring. Please try again or restart the application.")
 	}
 
 	if storedPassword != password {
-		return fmt.Errorf("password is incorrect")
+		return fmt.Errorf("Password is incorrect. Please check your password and try again.")
 	}
 
 	// Stop service if running
@@ -281,7 +281,7 @@ func RegenerateKeys(cfg *core.Config, sm *core.ServiceManager, password string) 
 	if wasRunning {
 		if err := sm.SoftStop(); err != nil {
 			if err := sm.Stop(); err != nil {
-				return fmt.Errorf("failed to stop service: %w", err)
+				return fmt.Errorf("Failed to stop the service. Please stop it manually and try again. Error: %v", err)
 			}
 		}
 
@@ -294,7 +294,7 @@ func RegenerateKeys(cfg *core.Config, sm *core.ServiceManager, password string) 
 
 			// Timeout after 10 seconds
 			if i == 49 {
-				return fmt.Errorf("service did not stop within 10 seconds")
+				return fmt.Errorf("Service did not stop within 10 seconds. Please try stopping it manually first.")
 			}
 		}
 	}
@@ -307,7 +307,7 @@ func RegenerateKeys(cfg *core.Config, sm *core.ServiceManager, password string) 
 				sm.Start()
 			}
 		}
-		return fmt.Errorf("failed to close service: %w", err)
+		return fmt.Errorf("Failed to close the service and release database file. Error: %v", err)
 	}
 
 	// Delete database to force key regeneration
@@ -319,7 +319,7 @@ func RegenerateKeys(cfg *core.Config, sm *core.ServiceManager, password string) 
 				sm.Start()
 			}
 		}
-		return fmt.Errorf("failed to delete database: %w", err)
+		return fmt.Errorf("Failed to delete database file. Please ensure the file is not in use. Error: %v", err)
 	}
 
 	// Mark password as not initialized to force re-setting on next Initialize()
@@ -330,13 +330,13 @@ func RegenerateKeys(cfg *core.Config, sm *core.ServiceManager, password string) 
 
 	// Reinitialize service (this creates new database with new keys)
 	if err := sm.Initialize(); err != nil {
-		return fmt.Errorf("failed to reinitialize service: %w", err)
+		return fmt.Errorf("Failed to initialize service with new keys. Error: %v", err)
 	}
 
 	// Restart service if it was running
 	if wasRunning {
 		if err := sm.Start(); err != nil {
-			return fmt.Errorf("failed to restart service: %w", err)
+			return fmt.Errorf("Keys regenerated successfully, but failed to restart the service. Please start it manually. Error: %v", err)
 		}
 	}
 

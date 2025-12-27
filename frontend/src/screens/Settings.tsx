@@ -10,6 +10,7 @@ import {
   HolographicBorder,
   Badge,
 } from '../components';
+import { toast } from '../components/ui/Toast';
 import { useConfig } from '../hooks/useConfig';
 import { useI18n } from '../hooks/useI18n';
 import {
@@ -20,7 +21,6 @@ import {
   ChangePassword,
   RegenerateKeys,
 } from '../../wailsjs/go/main/App';
-import { showSuccess, showError } from '../store/uiStore';
 
 type SettingsPage = 'hub' | 'general' | 'security' | 'about';
 
@@ -70,9 +70,9 @@ export function Settings() {
       setIsProcessing(true);
       // changeLanguage will handle both i18n update and backend config save
       await changeLanguage(lang);
-      showSuccess(t('dialog.success'), t('settings.messages.languageChanged'));
+      toast.success(t('settings.messages.languageChanged'));
     } catch (error) {
-      showError(t('dialog.error'), error instanceof Error ? error.message : t('settings.messages.languageChangeFailed'));
+      toast.error(error instanceof Error ? error.message : t('settings.messages.languageChangeFailed'));
     } finally {
       setIsProcessing(false);
     }
@@ -84,9 +84,9 @@ export function Settings() {
       setIsProcessing(true);
       await SetTheme(theme);
       await loadConfig();
-      showSuccess(t('dialog.success'), t('settings.messages.themeChanged'));
+      toast.success(t('settings.messages.themeChanged'));
     } catch (error) {
-      showError(t('dialog.error'), error instanceof Error ? error.message : t('settings.messages.themeChangeFailed'));
+      toast.error(error instanceof Error ? error.message : t('settings.messages.themeChangeFailed'));
     } finally {
       setIsProcessing(false);
     }
@@ -98,9 +98,9 @@ export function Settings() {
       setIsProcessing(true);
       await SetAutoStart(enabled);
       await loadConfig();
-      showSuccess(t('dialog.success'), enabled ? t('settings.messages.autostartEnabled') : t('settings.messages.autostartDisabled'));
+      toast.success(enabled ? t('settings.messages.autostartEnabled') : t('settings.messages.autostartDisabled'));
     } catch (error) {
-      showError(t('dialog.error'), error instanceof Error ? error.message : t('settings.messages.autostartChangeFailed'));
+      toast.error(error instanceof Error ? error.message : t('settings.messages.autostartChangeFailed'));
     } finally {
       setIsProcessing(false);
     }
@@ -109,27 +109,27 @@ export function Settings() {
   // Handle password change
   const handleChangePassword = async () => {
     if (!currentPassword) {
-      showError(t('settings.messages.validationError'), t('settings.messages.passwordRequired'));
+      toast.error(t('settings.messages.passwordRequired'));
       return;
     }
     if (newPassword.length < 8) {
-      showError(t('settings.messages.validationError'), t('settings.messages.passwordShort'));
+      toast.error(t('settings.messages.passwordShort'));
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      showError(t('settings.messages.validationError'), t('settings.messages.passwordMismatch'));
+      toast.error(t('settings.messages.passwordMismatch'));
       return;
     }
     setIsProcessing(true);
     try {
       await ChangePassword(currentPassword, newPassword);
-      showSuccess(t('settings.messages.passwordChangeTitle'), t('settings.messages.passwordChanged'));
+      toast.success(t('settings.messages.passwordChanged'));
       setShowPasswordModal(false);
       setNewPassword('');
       setConfirmNewPassword('');
       setCurrentPassword('');
     } catch (error) {
-      showError(t('settings.messages.passwordChangeFailedTitle'), error instanceof Error ? error.message : t('settings.messages.passwordChangeFailed'));
+      toast.error(error instanceof Error ? error.message : t('settings.messages.passwordChangeFailed'));
     } finally {
       setIsProcessing(false);
     }
@@ -138,17 +138,17 @@ export function Settings() {
   // Handle key regeneration
   const handleRegenerateKeys = async () => {
     if (!currentPassword) {
-      showError(t('settings.messages.passwordRequiredTitle'), t('settings.messages.passwordRequired'));
+      toast.error(t('settings.messages.passwordRequired'));
       return;
     }
     setIsProcessing(true);
     try {
       await RegenerateKeys(currentPassword);
-      showSuccess(t('settings.messages.keysRegenerated'), t('settings.messages.keysRegeneratedMessage'));
+      toast.success(t('settings.messages.keysRegeneratedMessage'));
       setShowKeysModal(false);
       setCurrentPassword('');
     } catch (error) {
-      showError(t('settings.messages.keyRegenerationFailedTitle'), error instanceof Error ? error.message : t('settings.messages.keyRegenerationFailed'));
+      toast.error(error instanceof Error ? error.message : t('settings.messages.keyRegenerationFailed'));
     } finally {
       setIsProcessing(false);
     }

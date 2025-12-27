@@ -11,7 +11,7 @@ import {
 import { useServiceStatus } from '../hooks/useServiceStatus';
 import { useI18n } from '../hooks/useI18n';
 import { CopyToClipboard, OpenDeltaChat } from '../../wailsjs/go/main/App';
-import { showSuccess, showError } from '../store/uiStore';
+import { toast } from '../components/ui/Toast';
 import type { ServiceStatus } from '../components';
 
 /**
@@ -59,24 +59,24 @@ export function Dashboard() {
     try {
       await CopyToClipboard(text);
       setCopiedField(fieldName);
-      showSuccess(t('dashboard.messages.copied'), t('dashboard.messages.copiedToClipboard').replace('{field}', fieldName));
+      toast.success(t('dashboard.messages.copiedToClipboard'));
       setTimeout(() => setCopiedField(null), 2000);
     } catch (error) {
-      showError(t('dashboard.messages.copyFailed'), error instanceof Error ? error.message : t('dashboard.messages.copyFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('dashboard.messages.copyFailedMessage'));
     }
   };
 
   // Open DeltaChat with dclogin:// URL for auto-configuration
   const handleOpenDeltaChat = async () => {
     if (!mailAddress) {
-      showError(t('dashboard.messages.noMailAddress'), t('dashboard.messages.noMailAddressMessage'));
+      toast.error(t('dashboard.messages.noMailAddressMessage'));
       return;
     }
     try {
       await OpenDeltaChat();
-      showSuccess(t('dashboard.messages.deltachatOpened'), t('dashboard.messages.deltachatOpenedMessage'));
+      toast.success(t('dashboard.messages.deltachatOpenedMessage'));
     } catch (error) {
-      showError(t('dashboard.messages.openFailed'), error instanceof Error ? error.message : t('dashboard.messages.openFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('dashboard.messages.openFailedMessage'));
     }
   };
 
@@ -84,27 +84,27 @@ export function Dashboard() {
   const handleStartService = async () => {
     try {
       await startService();
-      showSuccess(t('dashboard.messages.serviceStarted'), t('dashboard.messages.serviceStartedMessage'));
+      toast.success(t('dashboard.messages.serviceStartedMessage'));
     } catch (error) {
-      showError(t('dashboard.messages.startFailed'), error instanceof Error ? error.message : t('dashboard.messages.startFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('dashboard.messages.startFailedMessage'));
     }
   };
 
   const handleStopService = async () => {
     try {
       await stopService();
-      showSuccess(t('dashboard.messages.serviceStopped'), t('dashboard.messages.serviceStoppedMessage'));
+      toast.success(t('dashboard.messages.serviceStoppedMessage'));
     } catch (error) {
-      showError(t('dashboard.messages.stopFailed'), error instanceof Error ? error.message : t('dashboard.messages.stopFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('dashboard.messages.stopFailedMessage'));
     }
   };
 
   const handleRestartService = async () => {
     try {
       await restartService();
-      showSuccess(t('dashboard.messages.serviceRestarted'), t('dashboard.messages.serviceRestartedMessage'));
+      toast.success(t('dashboard.messages.serviceRestartedMessage'));
     } catch (error) {
-      showError(t('dashboard.messages.restartFailed'), error instanceof Error ? error.message : t('dashboard.messages.restartFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('dashboard.messages.restartFailedMessage'));
     }
   };
 
@@ -272,11 +272,11 @@ export function Dashboard() {
                       <Button
                         variant="primary"
                         glow
-                        onClick={() => handleCopy(mailAddress, t('dashboard.messages.smtpAddress'))}
-                        disabled={copiedField === t('dashboard.messages.smtpAddress')}
+                        onClick={() => handleCopy(mailAddress, t('dashboard.messages.mailAddress'))}
+                        disabled={copiedField === t('dashboard.messages.mailAddress')}
                         className="flex-1"
                       >
-                        {copiedField === t('dashboard.messages.smtpAddress') ? t('dashboard.copied') : t('dashboard.copyAddressButton')}
+                        {copiedField === t('dashboard.messages.mailAddress') ? t('dashboard.copied') : t('dashboard.copyAddressButton')}
                       </Button>
                       <Button
                         variant="secondary"

@@ -18,7 +18,7 @@ import {
   GetConfig,
   SaveConfig,
 } from '../../wailsjs/go/main/App';
-import { showSuccess, showError } from '../store/uiStore';
+import { toast } from '../components/ui/Toast';
 
 /**
  * Peers Screen - Peer management
@@ -73,19 +73,19 @@ export function Peers() {
   // Handle add peer
   const handleAddPeer = async () => {
     if (!newPeerAddress.trim()) {
-      showError(t('peers.messages.validationError'), t('peers.messages.peerAddressEmpty'));
+      toast.error(t('peers.messages.peerAddressEmpty'));
       return;
     }
 
     // Validate format (basic check)
     if (!newPeerAddress.includes('://')) {
-      showError(t('peers.messages.validationError'), t('peers.messages.invalidFormat'));
+      toast.error(t('peers.messages.invalidFormat'));
       return;
     }
 
     // Check if peer already exists
     if (localPeers.some(p => p.address === newPeerAddress.trim())) {
-      showError(t('peers.messages.duplicatePeer'), t('peers.messages.duplicatePeerMessage'));
+      toast.error(t('peers.messages.duplicatePeerMessage'));
       return;
     }
 
@@ -96,7 +96,7 @@ export function Peers() {
       setNewPeerAddress('');
       setShowAddModal(false);
       setHasChanges(true);
-      showSuccess(t('peers.messages.peerAdded'), t('peers.messages.peerAddedMessage'));
+      toast.success(t('peers.messages.peerAddedMessage'));
     } finally {
       setIsProcessing(false);
     }
@@ -113,7 +113,7 @@ export function Peers() {
       setPeerToDelete(null);
       setShowDeleteModal(false);
       setHasChanges(true);
-      showSuccess(t('peers.messages.peerRemoved'), t('peers.messages.peerRemovedMessage'));
+      toast.success(t('peers.messages.peerRemovedMessage'));
     } finally {
       setIsProcessing(false);
     }
@@ -143,9 +143,9 @@ export function Peers() {
       await fetchPeerStats();
 
       setHasChanges(false);
-      showSuccess(t('peers.messages.changesApplied'), t('peers.messages.changesAppliedMessage'));
+      toast.success(t('peers.messages.changesAppliedMessage'));
     } catch (error) {
-      showError(t('peers.messages.applyFailed'), error instanceof Error ? error.message : t('peers.messages.applyFailedMessage'));
+      toast.error(error instanceof Error ? error.message : t('peers.messages.applyFailedMessage'));
     } finally {
       setIsHotReloading(false);
     }
@@ -168,7 +168,7 @@ export function Peers() {
 
       setHasChanges(true);
       const status = localPeer.enabled ? 'disabled' : 'enabled';
-      showSuccess(t(`peers.messages.peer${status === 'enabled' ? 'Enabled' : 'Disabled'}`), t(`peers.messages.peer${status === 'enabled' ? 'Enabled' : 'Disabled'}Message`));
+      toast.success(t(`peers.messages.peer${status === 'enabled' ? 'Enabled' : 'Disabled'}Message`));
     } finally {
       setIsProcessing(false);
     }
@@ -324,6 +324,7 @@ export function Peers() {
                   <PeerCard
                     peer={{
                       address: peer.address,
+                      enabled: peer.enabled,
                       connected: peer.connected,
                       latency: peer.latency,
                       rxBytes: peer.rxBytes,
