@@ -15,6 +15,7 @@ import {
   GetCachedDiscoveredPeers,
   ClearCachedDiscoveredPeers,
   GetAvailableRegions,
+  CancelPeerDiscovery,
 } from '../../../wailsjs/go/main/App';
 import { core } from '../../../wailsjs/go/models';
 import { EventsOn, EventsOff } from '../../../wailsjs/runtime/runtime';
@@ -125,6 +126,16 @@ export function PeerDiscoveryModal({ isOpen, onClose, onPeersAdded }: PeerDiscov
       );
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleStopSearch = async () => {
+    try {
+      await CancelPeerDiscovery();
+      setIsSearching(false);
+      showSuccess(t('peers.discovery.searchStopped'), t('peers.discovery.searchStoppedMessage'));
+    } catch (error) {
+      showError(t('action.error'), error instanceof Error ? error.message : 'Failed to stop search');
     }
   };
 
@@ -252,16 +263,26 @@ export function PeerDiscoveryModal({ isOpen, onClose, onPeersAdded }: PeerDiscov
             </div>
 
             <div className="flex gap-3">
-              <Button
-                variant="primary"
-                glow
-                onClick={handleSearch}
-                disabled={isSearching || selectedProtocols.length === 0}
-                className="flex-1"
-              >
-                {isSearching ? t('peers.discovery.searching') : t('peers.discovery.searchButton')}
-              </Button>
-              {showCached && (
+              {isSearching ? (
+                <Button
+                  variant="danger"
+                  onClick={handleStopSearch}
+                  className="flex-1"
+                >
+                  {t('peers.discovery.stopButton')}
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  glow
+                  onClick={handleSearch}
+                  disabled={selectedProtocols.length === 0}
+                  className="flex-1"
+                >
+                  {t('peers.discovery.searchButton')}
+                </Button>
+              )}
+              {showCached && !isSearching && (
                 <Button
                   variant="ghost"
                   onClick={handleClearCache}

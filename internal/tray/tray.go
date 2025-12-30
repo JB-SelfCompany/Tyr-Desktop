@@ -263,8 +263,6 @@ func (m *Manager) updateMenuInternal() {
 
 	// Update tooltip
 	systray.SetTooltip(localizer.Get("systray.description"))
-
-	log.Printf("System tray menu updated: %s", statusInfo)
 }
 
 // updateMenu updates system tray menu with current service status

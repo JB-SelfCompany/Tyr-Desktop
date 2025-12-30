@@ -907,3 +907,8 @@ func (a *App) AddDiscoveredPeers(peers []core.DiscoveredPeer) error {
 func (a *App) GetPeerDiscoverySystemInfo() map[string]interface{} {
 	return peerdiscovery.GetPeerDiscoverySystemInfo()
 }
+
+// CancelPeerDiscovery cancels the ongoing peer discovery operation
+func (a *App) CancelPeerDiscovery() {
+	a.cancelPeerDiscoveryOperations()
+}

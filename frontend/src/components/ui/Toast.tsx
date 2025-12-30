@@ -15,10 +15,10 @@ import { Toaster, toast as hotToast, ToastOptions } from 'react-hot-toast';
 export const ToastProvider = () => {
   return (
     <Toaster
-      position="top-right"
+      position="bottom-center"
       toastOptions={{
         // Default options
-        duration: 4000,
+        duration: 2000,
         style: {
           background: 'rgba(26, 31, 54, 0.9)',
           backdropFilter: 'blur(20px)',
@@ -33,7 +33,7 @@ export const ToastProvider = () => {
 
         // Success
         success: {
-          duration: 4000,
+          duration: 2000,
           style: {
             background: 'rgba(16, 185, 129, 0.15)',
             backdropFilter: 'blur(20px)',
@@ -48,7 +48,7 @@ export const ToastProvider = () => {
 
         // Error
         error: {
-          duration: 5000,
+          duration: 2000,
           style: {
             background: 'rgba(239, 68, 68, 0.15)',
             backdropFilter: 'blur(20px)',
