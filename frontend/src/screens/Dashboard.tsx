@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -10,7 +10,7 @@ import {
 } from '../components';
 import { useServiceStatus } from '../hooks/useServiceStatus';
 import { useI18n } from '../hooks/useI18n';
-import { CopyToClipboard, OpenDeltaChat } from '../../wailsjs/go/main/App';
+import { CopyToClipboard, OpenDeltaChat, GetStorageStats } from '../../wailsjs/go/main/App';
 import { toast } from '../components/ui/Toast';
 import type { ServiceStatus } from '../components';
 
@@ -30,6 +30,22 @@ export function Dashboard() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [storageStats, setStorageStats] = useState<any>(null);
+  const [showDeltaChat, setShowDeltaChat] = useState(false);
+  const [showEmailClients, setShowEmailClients] = useState(false);
+
+  // Load storage stats on mount
+  useEffect(() => {
+    const loadStorageStats = async () => {
+      try {
+        const stats = await GetStorageStats();
+        setStorageStats(stats);
+      } catch (error) {
+        console.error('Failed to load storage stats:', error);
+      }
+    };
+    loadStorageStats();
+  }, []);
 
   // Service status hook with auto-refresh
   const {
@@ -303,7 +319,7 @@ export function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
         >
           <HolographicBorder animated borderWidth={2}>
             <GlassCard
@@ -320,7 +336,7 @@ export function Dashboard() {
                         key={peer.address}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
+                        transition={{ duration: 0.3, delay: 0.3 + index * 0.05 }}
                       >
                         <PeerCard
                           peer={{
@@ -352,6 +368,238 @@ export function Dashboard() {
                   </Button>
                 </div>
               )}
+            </GlassCard>
+          </HolographicBorder>
+        </motion.div>
+
+        {/* Storage Card */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <HolographicBorder animated borderWidth={2}>
+            <GlassCard title={t('storage.title')}>
+              <div className="space-y-3">
+                {/* Statistics in compact grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded px-3 py-2 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                    <p className="text-xs text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant mb-1">
+                      {t('storage.maxMessageSize')}
+                    </p>
+                    <p className="text-sm font-bold text-md-light-primary dark:text-md-dark-primary">
+                      {storageStats?.maxMessageSizeMB || 10} {t('storage.mb')}
+                    </p>
+                  </div>
+                  <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded px-3 py-2 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                    <p className="text-xs text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant mb-1">
+                      {t('storage.databaseSize')}
+                    </p>
+                    <p className="text-sm font-bold text-md-light-onSurface dark:text-md-dark-onSurface">
+                      {storageStats?.databaseSizeMB?.toFixed(2) || '0.00'} {t('storage.mb')}
+                    </p>
+                  </div>
+                  <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded px-3 py-2 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                    <p className="text-xs text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant mb-1">
+                      {t('storage.filesSize')}
+                    </p>
+                    <p className="text-sm font-bold text-md-light-onSurface dark:text-md-dark-onSurface">
+                      {storageStats?.filesSizeMB?.toFixed(2) || '0.00'} {t('storage.mb')}
+                    </p>
+                  </div>
+                  <div className="bg-md-light-primaryContainer dark:bg-md-dark-primaryContainer rounded px-3 py-2 border border-md-light-primary/30 dark:border-md-dark-primary/30">
+                    <p className="text-xs text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer mb-1">
+                      {t('storage.totalSize')}
+                    </p>
+                    <p className="text-sm font-bold text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer">
+                      {storageStats?.totalSizeMB?.toFixed(2) || '0.00'} {t('storage.mb')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          </HolographicBorder>
+        </motion.div>
+
+        {/* DeltaChat Setup Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+        >
+          <HolographicBorder animated borderWidth={2}>
+            <GlassCard
+              title={t('deltachat.title')}
+              subtitle={t('deltachat.subtitle')}
+            >
+              <div className="space-y-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowDeltaChat(!showDeltaChat)}
+                  className="w-full"
+                >
+                  {showDeltaChat ? `▼ ${t('deltachat.hideInstructions')}` : `▶ ${t('deltachat.showInstructions')}`}
+                </Button>
+
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: showDeltaChat ? 'auto' : 0,
+                    opacity: showDeltaChat ? 1 : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div className="space-y-4 pt-1">
+                    {/* Automatic Setup */}
+                    <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded-lg p-4 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                      <h4 className="text-base font-bold text-md-light-primary dark:text-md-dark-primary mb-3 font-futuristic">
+                        {t('deltachat.automatic.title')}
+                      </h4>
+                      <ol className="space-y-2 text-sm text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant list-decimal list-inside">
+                        <li>{t('deltachat.automatic.step1')}</li>
+                        <li>{t('deltachat.automatic.step2')}</li>
+                        <li>{t('deltachat.automatic.step3')}</li>
+                        <li>{t('deltachat.automatic.step4')}</li>
+                      </ol>
+                    </div>
+
+                    {/* Manual Setup */}
+                    <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded-lg p-4 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                      <h4 className="text-base font-bold text-md-light-primary dark:text-md-dark-primary mb-3 font-futuristic">
+                        {t('deltachat.manual.title')}
+                      </h4>
+                      <ol className="space-y-2 text-sm text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant list-decimal list-inside">
+                        <li>{t('deltachat.manual.step1')}</li>
+                        <li>{t('deltachat.manual.step2')}</li>
+                        <li>{t('deltachat.manual.step3')}</li>
+                        <li>{t('deltachat.manual.step4')}</li>
+                        <li>{t('deltachat.manual.step5')}</li>
+                      </ol>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </GlassCard>
+          </HolographicBorder>
+        </motion.div>
+
+        {/* Email Clients Setup Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <HolographicBorder animated borderWidth={2}>
+            <GlassCard
+              title={t('emailClients.title')}
+              subtitle={t('emailClients.subtitle')}
+            >
+              <div className="space-y-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowEmailClients(!showEmailClients)}
+                  className="w-full"
+                >
+                  {showEmailClients ? `▼ ${t('emailClients.hideInstructions')}` : `▶ ${t('emailClients.showInstructions')}`}
+                </Button>
+
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: showEmailClients ? 'auto' : 0,
+                    opacity: showEmailClients ? 1 : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div className="space-y-4 pt-1">
+                    {/* Server Configuration */}
+                    <div className="bg-md-light-primaryContainer dark:bg-md-dark-primaryContainer rounded-lg p-4 border border-md-light-primary/30 dark:border-md-dark-primary/30">
+                      <h4 className="text-base font-bold text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer mb-3 font-futuristic">
+                        {t('emailClients.serverConfig.title')}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer opacity-80 mb-1">
+                            {t('emailClients.serverConfig.imap')}
+                          </p>
+                          <p className="font-mono font-bold text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer">
+                            127.0.0.1:1143
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer opacity-80 mb-1">
+                            {t('emailClients.serverConfig.smtp')}
+                          </p>
+                          <p className="font-mono font-bold text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer">
+                            127.0.0.1:1025
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer opacity-80 mb-1">
+                            {t('emailClients.serverConfig.encryption')}
+                          </p>
+                          <p className="font-mono font-bold text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer">
+                            {t('emailClients.serverConfig.noEncryption')}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer opacity-80 mb-1">
+                            {t('emailClients.serverConfig.password')}
+                          </p>
+                          <p className="font-mono font-bold text-md-light-onPrimaryContainer dark:text-md-dark-onPrimaryContainer">
+                            {t('emailClients.serverConfig.tyrPassword')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Thunderbird */}
+                    <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded-lg p-4 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                      <h4 className="text-base font-bold text-md-light-primary dark:text-md-dark-primary mb-3 font-futuristic">
+                        📧 {t('emailClients.thunderbird.title')}
+                      </h4>
+                      <ol className="space-y-2 text-sm text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant list-decimal list-inside">
+                        <li>{t('emailClients.thunderbird.step1')}</li>
+                        <li>{t('emailClients.thunderbird.step2')}</li>
+                        <li>{t('emailClients.thunderbird.step3')}</li>
+                        <li>{t('emailClients.thunderbird.step4')}</li>
+                        <li>{t('emailClients.thunderbird.step5')}</li>
+                        <li>{t('emailClients.thunderbird.step6')}</li>
+                      </ol>
+                    </div>
+
+                    {/* Mailspring */}
+                    <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded-lg p-4 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                      <h4 className="text-base font-bold text-md-light-primary dark:text-md-dark-primary mb-3 font-futuristic">
+                        📧 {t('emailClients.mailspring.title')}
+                      </h4>
+                      <ol className="space-y-2 text-sm text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant list-decimal list-inside">
+                        <li>{t('emailClients.mailspring.step1')}</li>
+                        <li>{t('emailClients.mailspring.step2')}</li>
+                        <li>{t('emailClients.mailspring.step3')}</li>
+                        <li>{t('emailClients.mailspring.step4')}</li>
+                        <li>{t('emailClients.mailspring.step5')}</li>
+                      </ol>
+                    </div>
+
+                    {/* Apple Mail */}
+                    <div className="bg-md-light-surfaceVariant dark:bg-md-dark-surfaceVariant rounded-lg p-4 border border-md-light-outline/30 dark:border-md-dark-outline/30">
+                      <h4 className="text-base font-bold text-md-light-primary dark:text-md-dark-primary mb-3 font-futuristic">
+                        📧 {t('emailClients.appleMail.title')}
+                      </h4>
+                      <ol className="space-y-2 text-sm text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant list-decimal list-inside">
+                        <li>{t('emailClients.appleMail.step1')}</li>
+                        <li>{t('emailClients.appleMail.step2')}</li>
+                        <li>{t('emailClients.appleMail.step3')}</li>
+                        <li>{t('emailClients.appleMail.step4')}</li>
+                        <li>{t('emailClients.appleMail.step5')}</li>
+                      </ol>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
             </GlassCard>
           </HolographicBorder>
         </motion.div>

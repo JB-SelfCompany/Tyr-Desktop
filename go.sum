@@ -8,12 +8,10 @@ github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d h1:UK9fsWbWqwIQkMCz
 github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d/go.mod h1:BCnxhRf47C/dy/e/D2pmB8NkB3dQVIrkD98b220rx5Q=
 github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
-github.com/JB-SelfCompany/yggmail v0.0.0-20251213234636-6898242d2e9b h1:EqJidLmdz73y0xCfhy77JoMZho4gqQ9wV3NVLAdIjgg=
-github.com/JB-SelfCompany/yggmail v0.0.0-20251213234636-6898242d2e9b/go.mod h1:cl85YiPUCfCVA4K1bOzm08irzaBvwlctiRegmi8lgWI=
+github.com/JB-SelfCompany/yggmail v0.0.0-20251230114722-13c2d229483c h1:UUOQbIQXpMEe0uAmqMmtVCy3FoGhl6iS3ZQlfKnoBWQ=
+github.com/JB-SelfCompany/yggmail v0.0.0-20251230114722-13c2d229483c/go.mod h1:Z02zm7WLMMqlJQjb5K9JjvpT5uKNRLLTaINN6XFsLqs=
 github.com/JB-SelfCompany/yggpeers v0.0.0-20251216174745-cdf3f5f8f68d h1:LEYDXzDKIoqDlJWKHA06TZ3dcH9z4a0mZjBUp52d2Qg=
 github.com/JB-SelfCompany/yggpeers v0.0.0-20251216174745-cdf3f5f8f68d/go.mod h1:l2Hejktlvebl8Dhznt6dDNM/VLNOznXDEpidcQNSQZo=
-github.com/Revertron/yggquic v0.0.0-20251119040104-0b7dc40d2c5c h1:U07B/FBkyKTPBCPKgU3hXpq/SkmZYuShLAmf/x6QOqs=
-github.com/Revertron/yggquic v0.0.0-20251119040104-0b7dc40d2c5c/go.mod h1:uUAQPSSDOyEDPGKMf38mbYHPuXFhCfBNRqFlvJaqUg8=
 github.com/alessio/shellescape v1.4.1 h1:V7yhSDDn8LP4lc4jS8pFkt0zCnzVJlG5JXy9BVKJUX0=
 github.com/alessio/shellescape v1.4.1/go.mod h1:PZAiSCk0LJaZkiCSkPv8qIobYglO3FPpyFjDCtHLS30=
 github.com/bep/debounce v1.2.1 h1:v67fRdBA9UQu2NhLFXrSg0Brw7CexQekrBwDMM8bzeY=
@@ -115,6 +113,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=
 github.com/mattn/go-sqlite3 v1.14.32/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+github.com/neilalexander/generique v0.0.0-20251127000013-def6a5bd842a h1:iV/ivYwvXCsNOEFIc4YjQNbq+pmTqhON/rFQcjYLEPs=
+github.com/neilalexander/generique v0.0.0-20251127000013-def6a5bd842a/go.mod h1:dJzRxTIvxTW+LULsKqkBmaYRrXiGbee6mvvUPoj/Pvk=
 github.com/nicksnyder/go-i18n/v2 v2.5.1 h1:IxtPxYsR9Gp60cGXjfuR/llTqV8aYMsC472zD0D1vHk=
 github.com/nicksnyder/go-i18n/v2 v2.5.1/go.mod h1:DrhgsSDZxoAfvVrBVLXoxZn/pN5TXqaDbq7ju94viiQ=
 github.com/pelletier/go-toml/v2 v2.1.1 h1:LWAJwfNvjQZCFIDKWYQaM62NcYeYViCmWIwmOStowAI=
@@ -166,6 +166,8 @@ github.com/wailsapp/wails/v2 v2.11.0 h1:seLacV8pqupq32IjS4Y7V8ucab0WZwtK6VvUVxSB
 github.com/wailsapp/wails/v2 v2.11.0/go.mod h1:jrf0ZaM6+GBc1wRmXsM8cIvzlg0karYin3erahI4+0k=
 github.com/yggdrasil-network/yggdrasil-go v0.5.13-0.20251124092915-ae405adf7c4c h1:nLOY3F/ijB+eBHPK9yXzQqwOZK7XgFq1eJ91t2Tn1tA=
 github.com/yggdrasil-network/yggdrasil-go v0.5.13-0.20251124092915-ae405adf7c4c/go.mod h1:RqvtbKu1H6ocAr0WRDT7oavTT5X46i0PAd4cnS4A1w4=
+github.com/yggdrasil-network/yggquic v0.0.0-20251128173046-40cea64eaa96 h1:As3Fpafk2kp5nh+/yo68NeYLFS0r5axOGyxkzkj7tco=
+github.com/yggdrasil-network/yggquic v0.0.0-20251128173046-40cea64eaa96/go.mod h1:GvB9Fz0alWANv57DeuppZkSChrMHP2Mwv4V7iHbccWA=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/yuin/goldmark v1.7.8 h1:iERMLn0/QJeHFhxSt3p6PeN9mGnvIKSpG9YYorDMnic=
 github.com/yuin/goldmark v1.7.8/go.mod h1:uzxRWxtg69N339t3louHJ7+O03ezfj6PlliRlaOzY1E=

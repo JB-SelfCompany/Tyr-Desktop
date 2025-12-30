@@ -36,3 +36,9 @@ type RestoreOptionsDTO = models.RestoreOptionsDTO
 
 // ResultDTO represents a generic operation result
 type ResultDTO = models.ResultDTO
+
+// MessageSizeLimitCheckResultDTO represents the result of recipient message size limit check
+type MessageSizeLimitCheckResultDTO = models.MessageSizeLimitCheckResultDTO
+
+// StorageStatsDTO contains information about storage usage
+type StorageStatsDTO = models.StorageStatsDTO

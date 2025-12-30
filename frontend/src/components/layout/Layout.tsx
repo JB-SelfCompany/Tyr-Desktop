@@ -43,7 +43,6 @@ export function Layout({ children }: LayoutProps) {
   const navItems = [
     { path: '/', label: t('navigation.dashboard'), icon: '🏠' },
     { path: '/peers', label: t('navigation.peers'), icon: '🌐' },
-    { path: '/backup', label: t('navigation.backup'), icon: '💾' },
     { path: '/logs', label: t('navigation.logs'), icon: '📋' },
     { path: '/settings', label: t('navigation.settings'), icon: '⚙️' },
   ];

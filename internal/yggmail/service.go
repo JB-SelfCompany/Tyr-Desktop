@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neilalexander/yggmail/mobile"
+	"github.com/JB-SelfCompany/yggmail/mobile"
 )
 
 // Service wraps the yggmail library with lifecycle management and event handling
@@ -328,6 +328,62 @@ func (s *Service) UpdatePeers(peers []string) error {
 	}
 
 	return nil
+}
+
+// SetMaxMessageSizeMB sets the maximum message size in megabytes
+// This limits the size of individual messages that can be received
+func (s *Service) SetMaxMessageSizeMB(megabytes int64) error {
+	if megabytes < 0 {
+		return fmt.Errorf("max message size cannot be negative")
+	}
+
+	if err := s.yggmailService.SetMaxMessageSizeMB(megabytes); err != nil {
+		return fmt.Errorf("failed to set max message size: %w", err)
+	}
+
+	return nil
+}
+
+// GetMaxMessageSizeMB returns the current maximum message size in megabytes
+func (s *Service) GetMaxMessageSizeMB() (int64, error) {
+	sizeMB, err := s.yggmailService.GetMaxMessageSizeMB()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get max message size: %w", err)
+	}
+	return sizeMB, nil
+}
+
+// CheckRecipientMessageSizeLimit checks if recipient can accept a message of given size
+// This should be called BEFORE sending in 1-on-1 chats to avoid wasting bandwidth
+// For group chats, skip this check - send to all, those with capacity will accept
+//
+// Parameters:
+//   - recipientEmail: Full email address (e.g., "abc123...@yggmail")
+//   - messageSizeBytes: Size of message to send in bytes
+//
+// Returns MessageSizeLimitCheckResult with CanSend=true if message size is acceptable, false otherwise
+func (s *Service) CheckRecipientMessageSizeLimit(recipientEmail string, messageSizeBytes int64) (*MessageSizeLimitCheckResult, error) {
+	s.mu.RLock()
+	status := s.status
+	s.mu.RUnlock()
+
+	if status != StatusRunning {
+		return nil, fmt.Errorf("service must be running to check recipient message size limit")
+	}
+
+	// Call yggmail library's CheckRecipientMessageSizeLimit
+	result, err := s.yggmailService.CheckRecipientMessageSizeLimit(recipientEmail, messageSizeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check recipient message size limit: %w", err)
+	}
+
+	// Convert from mobile library result to our type
+	return &MessageSizeLimitCheckResult{
+		CanSend:       result.CanSend,
+		ErrorMessage:  result.ErrorMessage,
+		RecipientAddr: result.RecipientAddr,
+		MessageSizeMB: result.MessageSizeMB,
+	}, nil
 }
 
 // setupCallbacks configures the yggmail callbacks to forward events to our channels

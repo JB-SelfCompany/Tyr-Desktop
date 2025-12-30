@@ -596,6 +596,82 @@ func (a *App) IsServiceRunning() bool {
 	return service.IsServiceRunning(a.serviceManager)
 }
 
+// GetMaxMessageSizeMB returns the current maximum message size in megabytes
+func (a *App) GetMaxMessageSizeMB() (int64, error) {
+	if a.serviceManager == nil {
+		return 0, fmt.Errorf("service manager not initialized")
+	}
+	return a.serviceManager.GetMaxMessageSizeMB()
+}
+
+// CheckRecipientMessageSizeLimit checks if recipient can accept a message of given size
+// This should be called BEFORE sending in 1-on-1 chats to avoid wasting bandwidth
+func (a *App) CheckRecipientMessageSizeLimit(recipientEmail string, messageSizeBytes int64) (MessageSizeLimitCheckResultDTO, error) {
+	if a.serviceManager == nil {
+		return MessageSizeLimitCheckResultDTO{}, fmt.Errorf("service manager not initialized")
+	}
+
+	result, err := a.serviceManager.CheckRecipientMessageSizeLimit(recipientEmail, messageSizeBytes)
+	if err != nil {
+		return MessageSizeLimitCheckResultDTO{}, err
+	}
+
+	// Convert to DTO for frontend
+	return MessageSizeLimitCheckResultDTO{
+		CanSend:       result.CanSend,
+		ErrorMessage:  result.ErrorMessage,
+		RecipientAddr: result.RecipientAddr,
+		MessageSizeMB: result.MessageSizeMB,
+	}, nil
+}
+
+// ==================== Storage Bindings ====================
+
+// GetStorageStats returns storage usage statistics
+func (a *App) GetStorageStats() (StorageStatsDTO, error) {
+	if a.config == nil {
+		return StorageStatsDTO{}, fmt.Errorf("config not initialized")
+	}
+
+	stats, err := core.GetStorageStats(a.config)
+	if err != nil {
+		return StorageStatsDTO{}, err
+	}
+
+	return StorageStatsDTO{
+		DatabaseSizeMB:   stats.DatabaseSizeMB,
+		FilesSizeMB:      stats.FilesSizeMB,
+		TotalSizeMB:      stats.TotalSizeMB,
+		MaxMessageSizeMB: a.config.GetMaxMessageSizeMB(),
+	}, nil
+}
+
+// SetMaxMessageSizeMB sets the maximum message size and applies it to running service without restart
+func (a *App) SetMaxMessageSizeMB(sizeMB int64) error {
+	if a.config == nil {
+		return fmt.Errorf("config not initialized")
+	}
+
+	// Validate and set in config
+	if err := a.config.SetMaxMessageSizeMB(sizeMB); err != nil {
+		return err
+	}
+
+	// Save config
+	if err := a.config.Save(); err != nil {
+		return fmt.Errorf("failed to save config: %w", err)
+	}
+
+	// Apply to running service without restart (hot reload)
+	if a.serviceManager != nil && a.serviceManager.IsRunning() {
+		if err := a.serviceManager.HotReloadMaxMessageSize(sizeMB); err != nil {
+			return fmt.Errorf("failed to apply new message size limit: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // ==================== System Bindings ====================
 
 // ShowOpenFileDialog shows a file open dialog and returns the selected file path

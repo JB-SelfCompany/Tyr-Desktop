@@ -148,6 +148,30 @@ type ResultDTO struct {
 	Data string `json:"data,omitempty"`
 }
 
+// MessageSizeLimitCheckResultDTO represents the result of recipient message size limit check
+type MessageSizeLimitCheckResultDTO struct {
+	// CanSend indicates whether message can be sent (size within limit)
+	CanSend bool `json:"canSend"`
+	// ErrorMessage contains error message if CanSend is false
+	ErrorMessage string `json:"errorMessage,omitempty"`
+	// RecipientAddr is the recipient address that was checked
+	RecipientAddr string `json:"recipientAddr"`
+	// MessageSizeMB is the message size in megabytes
+	MessageSizeMB float64 `json:"messageSizeMB"`
+}
+
+// StorageStatsDTO contains information about storage usage
+type StorageStatsDTO struct {
+	// DatabaseSizeMB is the size of the yggmail.db file in megabytes
+	DatabaseSizeMB float64 `json:"databaseSizeMB"`
+	// FilesSizeMB is the total size of all stored message files in megabytes
+	FilesSizeMB float64 `json:"filesSizeMB"`
+	// TotalSizeMB is the total storage usage in megabytes
+	TotalSizeMB float64 `json:"totalSizeMB"`
+	// MaxMessageSizeMB is the current maximum message size limit in megabytes
+	MaxMessageSizeMB int64 `json:"maxMessageSizeMB"`
+}
+
 // Helper functions to convert internal types to DTOs
 
 // formatTimestamp converts time.Time to RFC3339 string

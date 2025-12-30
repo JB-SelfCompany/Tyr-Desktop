@@ -11,7 +11,6 @@ const Dashboard = lazy(() => import('./screens/Dashboard'));
 const Onboarding = lazy(() => import('./screens/Onboarding'));
 const Settings = lazy(() => import('./screens/Settings'));
 const Peers = lazy(() => import('./screens/Peers'));
-const Backup = lazy(() => import('./screens/Backup'));
 const Logs = lazy(() => import('./screens/Logs'));
 
 // Import hooks
@@ -149,7 +148,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/peers" element={<Peers />} />
-                <Route path="/backup" element={<Backup />} />
                 <Route path="/logs" element={<Logs />} />
                 <Route path="/settings/*" element={<Settings />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

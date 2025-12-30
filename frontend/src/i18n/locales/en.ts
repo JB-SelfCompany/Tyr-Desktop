@@ -143,6 +143,92 @@ export default {
     },
   },
 
+  // Storage
+  storage: {
+    title: "Storage",
+    subtitle: "Manage your message storage and limits",
+    limits: "Limits",
+    maxMessageSize: "Maximum incoming message size",
+    maxMessageSizeDescription: "Messages larger than this will be rejected",
+    statistics: "Storage Statistics",
+    databaseSize: "Database (messages)",
+    filesSize: "Files",
+    totalSize: "Total",
+    mb: "MB",
+    savingSettings: "Saving settings...",
+    settingsSaved: "Settings saved successfully",
+    saveFailed: "Failed to save settings",
+    restartingService: "Restarting service...",
+    serviceRestarted: "Service restarted successfully",
+    restartFailed: "Failed to restart service",
+    rangeLabel: "{{value}} MB",
+  },
+
+  // DeltaChat Setup
+  deltachat: {
+    title: "DeltaChat Setup",
+    subtitle: "Configure DeltaChat for P2P messaging",
+    showInstructions: "Show Instructions",
+    hideInstructions: "Hide Instructions",
+    automatic: {
+      title: "Option 1: Automatic Setup (Recommended)",
+      step1: "Complete Tyr onboarding and start the Yggmail service",
+      step2: "Install DeltaChat or ArcaneChat on your device",
+      step3: "In Tyr's main screen, tap \"Setup DeltaChat/ArcaneChat\" button",
+      step4: "Tyr will automatically open your chat app with pre-configured settings",
+    },
+    manual: {
+      title: "Option 2: Manual Setup",
+      step1: "Complete Tyr onboarding and start the service",
+      step2: "Copy your mail address from Tyr's main screen (e.g., abc123...@yggmail)",
+      step3: "In DeltaChat/ArcaneChat, create a new profile",
+      step4: "Tap \"Use a different server\" and enter your Yggmail address and password",
+      step5: "Tap \"✓\" to complete setup and start messaging!",
+    },
+  },
+
+  // Email Clients Setup
+  emailClients: {
+    title: "Email Client Setup",
+    subtitle: "Configure your favorite email client",
+    showInstructions: "Show Instructions",
+    hideInstructions: "Hide Instructions",
+    serverConfig: {
+      title: "Server Configuration",
+      imap: "IMAP Server",
+      smtp: "SMTP Server",
+      encryption: "Encryption",
+      noEncryption: "None (localhost only)",
+      password: "Password",
+      tyrPassword: "Your Tyr password",
+    },
+    thunderbird: {
+      title: "Thunderbird",
+      step1: "Account Settings → Create Account → Email Account",
+      step2: "Enter any name, your Tyr email address, click \"Manual Config\"",
+      step3: "IMAP server: localhost, port: 1143",
+      step4: "SMTP server: localhost, port: 1025",
+      step5: "Click \"Test\" button, then \"Continue\"",
+      step6: "Enter your Tyr password",
+    },
+    mailspring: {
+      title: "Mailspring",
+      step1: "Skip Mailspring ID setup",
+      step2: "Select \"IMAP/SMTP\" provider",
+      step3: "Enter your name, email address (*@yggmail.local), and Tyr password",
+      step4: "IMAP server: localhost, port: 1143 / SMTP server: localhost, port: 1025",
+      step5: "Security: None, check \"Allow insecure SSL\" option",
+    },
+    appleMail: {
+      title: "Apple Mail (macOS)",
+      step1: "Open Mail → Mail → Add Account → Other Mail Account",
+      step2: "Enter your name, Yggmail address, and Tyr password",
+      step3: "Uncheck \"Automatically manage connection settings\"",
+      step4: "Set IMAP to localhost:1143 and SMTP to localhost:1025",
+      step5: "Choose \"Password\" authentication and disable SSL/TLS",
+    },
+  },
+
   // Onboarding
   onboarding: {
     title: "Welcome to Tyr",
@@ -287,6 +373,7 @@ export default {
     general: "General",
     network: "Network",
     security: "Security",
+    storage: "Storage",
     backup: "Backup",
     about: "About",
     subtitle: "Configure your Tyr application",
@@ -303,6 +390,8 @@ export default {
       subtitle: "Configure your Tyr Desktop experience",
       generalDescription: "Language, theme, and autostart settings",
       securityDescription: "Password and encryption settings",
+      storageDescription: "Storage limits and usage statistics",
+      backupDescription: "Create and restore encrypted backups",
       aboutDescription: "Version info and links",
     },
     generalSettings: {

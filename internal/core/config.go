@@ -53,6 +53,10 @@ type ServiceSettings struct {
 	// PasswordInitialized indicates if the password has been set in yggmail database
 	// Used to avoid calling SetPassword on every restart
 	PasswordInitialized bool `toml:"password_initialized"`
+
+	// MaxMessageSizeMB is the maximum size of individual messages in megabytes
+	// Default: 50 MB, Range: 10-500 MB
+	MaxMessageSizeMB int64 `toml:"max_message_size_mb"`
 }
 
 // PeerConfig represents a Yggdrasil network peer configuration
@@ -126,6 +130,13 @@ const (
 	MinWindowHeight = 800
 	MaxWindowWidth  = 4096
 	MaxWindowHeight = 2160
+
+	// DefaultMaxMessageSizeMB is the default maximum message size in megabytes
+	DefaultMaxMessageSizeMB = 10
+
+	// Message size constraints
+	MinMaxMessageSizeMB = 10
+	MaxMaxMessageSizeMB = 500
 )
 
 // DefaultPeers is the list of default Yggdrasil network peers
@@ -409,6 +420,30 @@ func (c *Config) GetEnabledPeers() []string {
 	return enabled
 }
 
+// SetMaxMessageSizeMB sets the maximum message size in megabytes
+// Validates the value is within allowed range (10-500 MB)
+// Thread-safe with write lock
+func (c *Config) SetMaxMessageSizeMB(sizeMB int64) error {
+	if sizeMB < MinMaxMessageSizeMB || sizeMB > MaxMaxMessageSizeMB {
+		return fmt.Errorf("max message size must be between %d and %d MB", MinMaxMessageSizeMB, MaxMaxMessageSizeMB)
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.ServiceSettings.MaxMessageSizeMB = sizeMB
+	return nil
+}
+
+// GetMaxMessageSizeMB returns the current maximum message size in megabytes
+// Thread-safe with read lock
+func (c *Config) GetMaxMessageSizeMB() int64 {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.ServiceSettings.MaxMessageSizeMB
+}
+
 // newDefaultConfig creates a new configuration with default values
 func newDefaultConfig() *Config {
 	// Get config directory for database path
@@ -459,6 +494,9 @@ func (c *Config) applyDefaults() {
 			configDir = "."
 		}
 		c.ServiceSettings.DatabasePath = filepath.Join(configDir, "yggmail.db")
+	}
+	if c.ServiceSettings.MaxMessageSizeMB == 0 {
+		c.ServiceSettings.MaxMessageSizeMB = DefaultMaxMessageSizeMB
 	}
 
 	// Apply UI preferences defaults

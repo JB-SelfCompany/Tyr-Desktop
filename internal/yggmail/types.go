@@ -163,3 +163,15 @@ func (ec *EventChannels) IsClosed() bool {
 	defer ec.mu.RUnlock()
 	return ec.closed
 }
+
+// MessageSizeLimitCheckResult represents the result of recipient message size limit check
+type MessageSizeLimitCheckResult struct {
+	// CanSend indicates whether message can be sent (size within limit)
+	CanSend bool
+	// ErrorMessage contains error message if CanSend is false
+	ErrorMessage string
+	// RecipientAddr is the recipient address that was checked
+	RecipientAddr string
+	// MessageSizeMB is the message size in megabytes
+	MessageSizeMB float64
+}

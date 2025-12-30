@@ -5,8 +5,8 @@ go 1.25.5
 require (
 	fyne.io/fyne/v2 v2.7.1
 	fyne.io/systray v1.12.0
+	github.com/JB-SelfCompany/yggmail v0.0.0-20251230114722-13c2d229483c
 	github.com/JB-SelfCompany/yggpeers v0.0.0-20251216174745-cdf3f5f8f68d
-	github.com/neilalexander/yggmail v0.0.0-20251202230222-0fe5375737a3
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/wailsapp/wails/v2 v2.11.0
 	github.com/zalando/go-keyring v0.2.3
@@ -57,6 +57,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
+	github.com/neilalexander/generique v0.0.0-20251127000013-def6a5bd842a // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.5.1 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -78,7 +79,3 @@ require (
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 )
-
-replace github.com/neilalexander/yggmail => github.com/JB-SelfCompany/yggmail v0.0.0-20251213234636-6898242d2e9b
-
-replace github.com/yggdrasil-network/yggquic => github.com/Revertron/yggquic v0.0.0-20251119040104-0b7dc40d2c5c

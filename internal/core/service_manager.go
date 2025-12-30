@@ -174,6 +174,18 @@ func (sm *ServiceManager) Initialize() error {
 		}
 	}
 
+	// Set maximum message size limit from configuration
+	// This limits the size of individual messages that can be received
+	maxSizeMB := sm.config.ServiceSettings.MaxMessageSizeMB
+	if maxSizeMB == 0 {
+		maxSizeMB = 10 // Fallback if not set in config
+	}
+	if err := service.SetMaxMessageSizeMB(maxSizeMB); err != nil {
+		log.Printf("Warning: failed to set max message size: %v", err)
+	} else {
+		log.Printf("Maximum message size set to %d MB", maxSizeMB)
+	}
+
 	sm.yggmailService = service
 	sm.eventChans = service.GetEventChannels()
 
@@ -593,6 +605,28 @@ func (sm *ServiceManager) HotReloadPeers(peers []string) error {
 	return sm.UpdatePeers(peers)
 }
 
+// HotReloadMaxMessageSize updates the maximum message size without restarting the service
+// Applies the new limit to the running yggmail service without disconnecting peers
+// Thread-safe
+func (sm *ServiceManager) HotReloadMaxMessageSize(sizeMB int64) error {
+	sm.mu.RLock()
+	service := sm.yggmailService
+	running := sm.running
+	sm.mu.RUnlock()
+
+	if !running || service == nil {
+		return fmt.Errorf("service must be running to update max message size")
+	}
+
+	log.Printf("Hot reloading max message size to %d MB", sizeMB)
+	if err := service.SetMaxMessageSizeMB(sizeMB); err != nil {
+		return fmt.Errorf("failed to set max message size: %w", err)
+	}
+
+	log.Printf("Max message size updated successfully to %d MB", sizeMB)
+	return nil
+}
+
 // GetStatusChannel returns a channel that receives status updates
 // Buffered channel with capacity of 10
 func (sm *ServiceManager) GetStatusChannel() <-chan yggmail.ServiceStatus {
@@ -738,6 +772,47 @@ func (sm *ServiceManager) IsAutoconfigRunning() bool {
 	defer sm.mu.RUnlock()
 
 	return sm.autoconfigServer != nil && sm.autoconfigServer.IsRunning()
+}
+
+// GetMaxMessageSizeMB returns the current maximum message size in megabytes
+// Thread-safe with read lock
+func (sm *ServiceManager) GetMaxMessageSizeMB() (int64, error) {
+	sm.mu.RLock()
+	service := sm.yggmailService
+	sm.mu.RUnlock()
+
+	if service == nil {
+		return 0, fmt.Errorf("service not initialized")
+	}
+
+	return service.GetMaxMessageSizeMB()
+}
+
+// CheckRecipientMessageSizeLimit checks if recipient can accept a message of given size
+// This should be called BEFORE sending in 1-on-1 chats to avoid wasting bandwidth
+// For group chats, skip this check - send to all, those with capacity will accept
+//
+// Parameters:
+//   - recipientEmail: Full email address (e.g., "abc123...@yggmail")
+//   - messageSizeBytes: Size of message to send in bytes
+//
+// Returns MessageSizeLimitCheckResult with CanSend=true if message size is acceptable, false otherwise
+// Thread-safe with read lock
+func (sm *ServiceManager) CheckRecipientMessageSizeLimit(recipientEmail string, messageSizeBytes int64) (*yggmail.MessageSizeLimitCheckResult, error) {
+	sm.mu.RLock()
+	service := sm.yggmailService
+	running := sm.running
+	sm.mu.RUnlock()
+
+	if service == nil {
+		return nil, fmt.Errorf("service not initialized")
+	}
+
+	if !running {
+		return nil, fmt.Errorf("service must be running to check recipient message size limit")
+	}
+
+	return service.CheckRecipientMessageSizeLimit(recipientEmail, messageSizeBytes)
 }
 
 // Note: monitorLogs was removed to prevent duplicate consumption of log events
