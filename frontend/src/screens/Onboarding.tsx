@@ -231,7 +231,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         backupPath: backupFilePath,
         password: restorePassword,
       };
-      await RestoreBackup(options);
+      const result = await RestoreBackup(options);
+
+      // Check if restore was successful (e.g., wrong password)
+      if (!result.Success) {
+        throw new Error(result.Message || t('onboarding.messages.restoreFailedMessage'));
+      }
+
       LogPrint('[Onboarding] Backup restored successfully');
 
       // Initialize service manager after restore

@@ -19,9 +19,9 @@ import { useUIStore } from './store/uiStore';
 import { useThemeManager } from './hooks/useThemeManager';
 import { useI18n } from './hooks/useI18n';
 
-// Import Wails bindings
+// Import Wails bindings and runtime
 import { IsOnboardingComplete } from '../wailsjs/go/main/App';
-import { LogPrint } from './wailsjs/runtime/runtime';
+import { LogPrint, EventsOn, EventsOff } from './wailsjs/runtime/runtime';
 
 /**
  * App Component - Main application root
@@ -93,6 +93,25 @@ function App() {
     };
 
     checkOnboarding();
+
+    // Listen for config:restored event (e.g., after backup restore)
+    // This ensures onboarding state is updated after restore
+    const handleConfigRestored = async () => {
+      LogPrint('[App] config:restored event received, checking onboarding status...');
+      try {
+        const complete = await IsOnboardingComplete();
+        LogPrint('[App] Onboarding status after restore: ' + complete);
+        setOnboardingComplete(complete);
+      } catch (err) {
+        LogPrint('[App] Failed to check onboarding status after restore: ' + (err instanceof Error ? err.message : String(err)));
+      }
+    };
+
+    EventsOn('config:restored', handleConfigRestored);
+
+    return () => {
+      EventsOff('config:restored');
+    };
   }, [setAppLoading]);
 
   // Show loading screen while checking onboarding

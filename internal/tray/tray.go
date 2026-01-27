@@ -4,14 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log"
+	goruntime "runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"fyne.io/systray"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/core"
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/ui/i18n"
+)
+
+const (
+	// callbackTimeout - максимальное время выполнения callback
+	callbackTimeout = 10 * time.Second
 )
 
 
@@ -64,7 +71,16 @@ func (m *Manager) Setup() {
 	// This prevents blocking Wails' main event loop while allowing systray to have its own message pump
 	// See: https://github.com/fyne-io/systray/blob/master/example/main.go
 	go func() {
-		log.Println("Starting system tray...")
+		// CRITICAL: Lock this goroutine to a single OS thread
+		// Windows message pumps require thread affinity - the HWND is bound to the thread
+		// that created it. Without LockOSThread, Go scheduler can move the goroutine
+		// to a different OS thread, causing the message pump to lose connection
+		// to the tray window and become unresponsive.
+		// See: https://groups.google.com/g/golang-nuts/c/HTa5y2qLaWw
+		goruntime.LockOSThread()
+		defer goruntime.UnlockOSThread()
+
+		log.Println("Starting system tray (thread locked)...")
 		systray.Run(m.onTrayReady, m.onTrayExit)
 		log.Println("System tray has exited")
 	}()
@@ -129,19 +145,7 @@ func (m *Manager) handleShowClicks() {
 			return
 		case <-m.mShow.ClickedCh:
 			log.Println("Tray: Show window clicked")
-
-			// Wrap callback in recovery to prevent panics from crashing the handler
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Printf("handleShowClicks callback: recovered from panic: %v", r)
-					}
-				}()
-
-				if m.onShowCallback != nil {
-					m.onShowCallback()
-				}
-			}()
+			m.executeCallbackWithTimeout("Show", m.onShowCallback)
 		}
 	}
 }
@@ -160,19 +164,7 @@ func (m *Manager) handleSettingsClicks() {
 			return
 		case <-m.mSettings.ClickedCh:
 			log.Println("Tray: Settings clicked")
-
-			// Wrap callback in recovery to prevent panics from crashing the handler
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Printf("handleSettingsClicks callback: recovered from panic: %v", r)
-					}
-				}()
-
-				if m.onSettingsCallback != nil {
-					m.onSettingsCallback()
-				}
-			}()
+			m.executeCallbackWithTimeout("Settings", m.onSettingsCallback)
 		}
 	}
 }
@@ -191,20 +183,37 @@ func (m *Manager) handleQuitClicks() {
 			return
 		case <-m.mQuit.ClickedCh:
 			log.Println("Tray: Quit clicked")
-
-			// Wrap callback in recovery to prevent panics from crashing the handler
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Printf("handleQuitClicks callback: recovered from panic: %v", r)
-					}
-				}()
-
-				if m.onQuitCallback != nil {
-					m.onQuitCallback()
-				}
-			}()
+			// Quit callback выполняем без timeout, так как он должен завершить приложение
+			m.executeCallbackWithTimeout("Quit", m.onQuitCallback)
 		}
+	}
+}
+
+// executeCallbackWithTimeout выполняет callback с таймаутом для предотвращения зависания
+func (m *Manager) executeCallbackWithTimeout(name string, callback func()) {
+	if callback == nil {
+		return
+	}
+
+	done := make(chan struct{})
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Tray callback %s: recovered from panic: %v", name, r)
+			}
+			close(done)
+		}()
+		callback()
+	}()
+
+	select {
+	case <-done:
+		log.Printf("Tray callback %s: completed successfully", name)
+	case <-time.After(callbackTimeout):
+		log.Printf("Tray callback %s: TIMEOUT after %v - UI thread may be blocked", name, callbackTimeout)
+		// Не блокируем goroutine обработчика, callback продолжит выполнение в фоне
+		// Это позволяет принимать новые клики даже если предыдущий застрял
 	}
 }
 
@@ -301,6 +310,7 @@ func (m *Manager) SetServiceManager(sm *core.ServiceManager) {
 }
 
 // ShowWindow shows the window from system tray with robust recovery
+// Использует асинхронное выполнение с таймаутом для предотвращения зависания
 func ShowWindow(ctx context.Context) {
 	if ctx == nil {
 		log.Println("ShowWindow: context is nil, cannot show window")
@@ -309,17 +319,34 @@ func ShowWindow(ctx context.Context) {
 
 	log.Println("ShowWindow: attempting to show window from tray")
 
-	// Simplified approach for showing window on Windows
-	// Previous complex approach with goroutines and delays could cause race conditions
-	// and event loop blocking, leading to unresponsiveness
+	// Выполняем показ окна в отдельной goroutine с таймаутом
+	// Это предотвращает блокировку tray handler если Wails runtime застрял
+	done := make(chan struct{})
 
-	// Use defer with recover to prevent panics from blocking the tray
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("ShowWindow: recovered from panic: %v", r)
-		}
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("ShowWindow: recovered from panic: %v", r)
+			}
+			close(done)
+		}()
+
+		showWindowInternal(ctx)
 	}()
 
+	// Ждём выполнения с таймаутом
+	select {
+	case <-done:
+		log.Println("ShowWindow: window shown successfully")
+	case <-time.After(callbackTimeout):
+		log.Printf("ShowWindow: TIMEOUT after %v - Wails runtime may be blocked, trying fallback", callbackTimeout)
+		// Пробуем fallback в новой goroutine
+		go showWindowFallback(ctx)
+	}
+}
+
+// showWindowInternal выполняет фактический показ окна
+func showWindowInternal(ctx context.Context) {
 	// Step 1: Unminimize first (important for Windows)
 	runtime.WindowUnminimise(ctx)
 
@@ -327,7 +354,6 @@ func ShowWindow(ctx context.Context) {
 	runtime.WindowShow(ctx)
 
 	// Step 3: Bring to front using WindowSetAlwaysOnTop temporarily
-	// IMPORTANT: We do this synchronously now, no goroutines with delays
 	runtime.WindowSetAlwaysOnTop(ctx, true)
 	runtime.WindowSetAlwaysOnTop(ctx, false)
 
@@ -336,11 +362,30 @@ func ShowWindow(ctx context.Context) {
 
 	// Emit event for frontend
 	runtime.EventsEmit(ctx, "window:showing", nil)
+}
 
-	log.Println("ShowWindow: window shown successfully")
+// showWindowFallback пытается показать окно альтернативным способом
+func showWindowFallback(ctx context.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("ShowWindow fallback: recovered from panic: %v", r)
+		}
+	}()
+
+	log.Println("ShowWindow fallback: attempting alternative show method")
+
+	// Минимальный набор действий без AlwaysOnTop который может блокироваться
+	runtime.WindowShow(ctx)
+
+	// Небольшая задержка и повторная попытка
+	time.Sleep(100 * time.Millisecond)
+	runtime.WindowUnminimise(ctx)
+
+	log.Println("ShowWindow fallback: completed")
 }
 
 // ShowSettingsWindow shows the settings window from system tray
+// Использует асинхронное выполнение с таймаутом для предотвращения зависания
 func ShowSettingsWindow(ctx context.Context) {
 	if ctx == nil {
 		log.Println("ShowSettingsWindow: context is nil, cannot show window")
@@ -349,14 +394,32 @@ func ShowSettingsWindow(ctx context.Context) {
 
 	log.Println("ShowSettingsWindow: attempting to show settings from tray")
 
-	// Use defer with recover to prevent panics
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("ShowSettingsWindow: recovered from panic: %v", r)
-		}
+	done := make(chan struct{})
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("ShowSettingsWindow: recovered from panic: %v", r)
+			}
+			close(done)
+		}()
+
+		showSettingsWindowInternal(ctx)
 	}()
 
-	// Simplified approach - show window first
+	select {
+	case <-done:
+		log.Println("ShowSettingsWindow: window shown and navigated to settings")
+	case <-time.After(callbackTimeout):
+		log.Printf("ShowSettingsWindow: TIMEOUT after %v - Wails runtime may be blocked", callbackTimeout)
+		// Пробуем fallback
+		go showWindowFallback(ctx)
+	}
+}
+
+// showSettingsWindowInternal выполняет фактический показ окна настроек
+func showSettingsWindowInternal(ctx context.Context) {
+	// Show window first
 	runtime.WindowUnminimise(ctx)
 	runtime.WindowShow(ctx)
 	runtime.WindowSetAlwaysOnTop(ctx, true)
@@ -374,8 +437,6 @@ func ShowSettingsWindow(ctx context.Context) {
 
 	// Emit event for frontend
 	runtime.EventsEmit(ctx, "window:showing", nil)
-
-	log.Println("ShowSettingsWindow: window shown and navigated to settings")
 }
 
 // QuitApplication quits the application from system tray

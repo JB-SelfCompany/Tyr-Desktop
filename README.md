@@ -10,6 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org)
 [![Wails](https://img.shields.io/badge/Wails-v2.11-DF5620.svg)](https://wails.io)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey.svg)
+![Downloads](https://img.shields.io/github/downloads/JB-SelfCompany/Tyr-Desktop/total)
 
 **[English](#) | [Русский](README.ru.md)**
 
@@ -155,15 +156,21 @@ Binary will be created at `build/bin/`
 
 To update Tyr Desktop to a new version on both Windows and Linux:
 
-1. **Build the new binary** using the build scripts:
-   - **Windows**: Run `build-windows.bat`
-   - **Linux**: Run `./build-linux.sh`
+1. **Download or build the new binary**:
+   - Download from [Releases](https://github.com/JB-SelfCompany/Tyr-Desktop/releases)
+   - Or build using scripts: `build-windows.bat` (Windows) / `./build-linux.sh` (Linux)
 
-2. **Replace the old executable** with the newly compiled binary from `build/bin/`
+2. **Replace the old executable** with the new binary
 
-3. **Delete the old version** binary
+3. **Start the application** - your data will be preserved
 
-Your configuration, database, and all settings will be preserved automatically - they're stored separately in the config directory and won't be affected by replacing the executable.
+### Portable Mode (v2.1.0+)
+All data is stored in `./data/` subdirectory next to the executable. When updating:
+- Your configuration, database, and settings are preserved automatically
+- Just replace the executable file, the `data/` folder remains untouched
+
+### Upgrading from v2.0.x
+When first launching v2.1.0+, your data will be automatically migrated from the old location (`%APPDATA%\Tyr` on Windows or `~/.config/tyr` on Linux) to the new portable `./data/` directory.
 
 > **Note**: No need to stop the service before updating. Simply close the application, replace the binary, and restart.
 
@@ -284,18 +291,37 @@ Tyr runs in the system tray (notification area):
 
 **Important**: Closing the main window minimizes to tray. Use "Quit" from tray menu to fully exit.
 
-## Configuration Files
+## Configuration Files (Portable Mode)
 
-### Windows
-- **Config**: `%APPDATA%\Tyr\config.toml`
-- **Database**: `%APPDATA%\Tyr\yggmail.db`
-- **Password**: Windows Credential Manager (service: `Tyr`, user: `default`)
+Starting from version 2.1.0, Tyr Desktop operates in **portable mode**. All data is stored in a `data/` subdirectory next to the executable, making the application fully portable - just copy the folder to move your installation.
 
-### Linux
-- **Config**: `~/.config/tyr/config.toml`
-- **Database**: `~/.config/tyr/yggmail.db`
-- **Password**: GNOME Keyring / KWallet (service: `Tyr`, user: `default`)
-  - Fallback: `~/.config/tyr/.password` (AES-encrypted)
+### File Structure
+```
+Tyr-Desktop.exe (or Tyr-Desktop on Linux)
+data/
+├── config.toml              # Configuration file
+├── yggmail.db               # Mail database
+├── yggmail.db.maildata/     # Mail content and attachments
+│   ├── INBOX/
+│   ├── Sent/
+│   ├── Drafts/
+│   ├── Outbox/
+│   └── Trash/
+├── logs/                    # Application logs
+└── cache/                   # Cache files
+```
+
+### Password Storage
+- **Windows**: Windows Credential Manager (service: `Tyr`, user: `default`)
+- **Linux**: GNOME Keyring / KWallet (service: `Tyr`, user: `default`)
+  - Fallback: `./data/.password` (AES-encrypted)
+
+### Migration from Previous Versions
+When upgrading from version 2.0.x, Tyr will automatically migrate your data from the old location:
+- **Windows**: `%APPDATA%\Tyr` → `./data/`
+- **Linux**: `~/.config/tyr` → `./data/`
+
+The old directory is removed after successful migration.
 
 ## Troubleshooting
 

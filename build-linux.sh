@@ -92,9 +92,9 @@ fi
 echo "Go dependencies downloaded successfully!"
 echo ""
 
-# Extract version from wails.json
-echo "Reading version from wails.json..."
-VERSION=$(grep -oP '"version":\s*"\K[^"]+' wails.json)
+# Extract version from internal/version/version.go (single source of truth)
+echo "Reading version from internal/version/version.go..."
+VERSION=$(grep -oP 'var Version = "\K[^"]+' internal/version/version.go 2>/dev/null || echo "dev")
 echo "Building version: $VERSION"
 echo ""
 
@@ -137,7 +137,7 @@ echo ""
 # Step 3: Building application...
 echo "Step 3: Building application..."
 echo "This may take several minutes..."
-wails build -clean -platform linux/amd64 -tags webkit2_41 -ldflags "-X main.version=$VERSION"
+wails build -clean -platform linux/amd64 -tags webkit2_41 -ldflags "-X github.com/JB-SelfCompany/Tyr-Desktop/internal/version.Version=$VERSION"
 if [ $? -ne 0 ]; then
     echo "ERROR: Build failed"
     exit 1

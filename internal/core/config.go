@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/JB-SelfCompany/Tyr-Desktop/internal/platform"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -153,43 +153,16 @@ var peerAddressRegex = regexp.MustCompile(
 		`^(ws|wss)://[a-zA-Z0-9.-]+:[0-9]+(/[^\s]*)?$`, // WebSockets with optional path
 )
 
-// GetConfigDir returns the platform-specific configuration directory path
-// Windows: %APPDATA%\Tyr
-// Linux: ~/.config/tyr
+// GetConfigDir returns the portable configuration directory path.
+// PORTABLE MODE: All data is stored in "data" subdirectory next to the executable.
 func GetConfigDir() (string, error) {
-	// Get user config directory (cross-platform)
-	userConfigDir, err := os.UserConfigDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get user config directory: %w", err)
-	}
-
-	// Platform-specific subdirectory structure
-	var configDir string
-	if filepath.Separator == '\\' {
-		// Windows: %APPDATA%\Tyr
-		configDir = filepath.Join(userConfigDir, "Tyr")
-	} else {
-		// Linux: ~/.config/tyr
-		configDir = filepath.Join(userConfigDir, "tyr")
-	}
-
-	return configDir, nil
+	return platform.GetDataDir(), nil
 }
 
 // EnsureConfigDir creates the configuration directory if it doesn't exist
-// Sets appropriate permissions (0700 for user-only access)
+// Sets appropriate permissions (0755 for portable data directory)
 func EnsureConfigDir() error {
-	configDir, err := GetConfigDir()
-	if err != nil {
-		return err
-	}
-
-	// Create directory with user-only permissions (rwx------)
-	if err := os.MkdirAll(configDir, 0700); err != nil {
-		return fmt.Errorf("failed to create config directory: %w", err)
-	}
-
-	return nil
+	return platform.EnsureDirectories()
 }
 
 // Load reads the configuration from the TOML file
@@ -202,14 +175,10 @@ func Load() (*Config, error) {
 	}
 
 	// Get config file path
-	configDir, err := GetConfigDir()
-	if err != nil {
-		return nil, err
-	}
-	configPath := filepath.Join(configDir, ConfigFileName)
+	configPath := platform.GetConfigPath()
 
 	// Check if config file exists
-	_, err = os.Stat(configPath)
+	_, err := os.Stat(configPath)
 	if os.IsNotExist(err) {
 		// Create default configuration
 		config := newDefaultConfig()
@@ -253,11 +222,7 @@ func (c *Config) Save() error {
 	}
 
 	// Get config file path
-	configDir, err := GetConfigDir()
-	if err != nil {
-		return err
-	}
-	configPath := filepath.Join(configDir, ConfigFileName)
+	configPath := platform.GetConfigPath()
 
 	// Marshal config to TOML
 	data, err := toml.Marshal(c)
@@ -446,13 +411,6 @@ func (c *Config) GetMaxMessageSizeMB() int64 {
 
 // newDefaultConfig creates a new configuration with default values
 func newDefaultConfig() *Config {
-	// Get config directory for database path
-	configDir, err := GetConfigDir()
-	if err != nil {
-		// Fallback to current directory if config dir unavailable
-		configDir = "."
-	}
-
 	// Create default peers list
 	defaultPeers := make([]PeerConfig, len(DefaultPeers))
 	for i, address := range DefaultPeers {
@@ -467,7 +425,7 @@ func newDefaultConfig() *Config {
 		ServiceSettings: ServiceSettings{
 			SMTPAddress:  DefaultSMTPAddress,
 			IMAPAddress:  DefaultIMAPAddress,
-			DatabasePath: filepath.Join(configDir, "yggmail.db"),
+			DatabasePath: platform.GetDatabasePath(),
 		},
 		NetworkPeers: defaultPeers,
 		UIPreferences: UIPreferences{
@@ -488,13 +446,8 @@ func (c *Config) applyDefaults() {
 	if c.ServiceSettings.IMAPAddress == "" {
 		c.ServiceSettings.IMAPAddress = DefaultIMAPAddress
 	}
-	if c.ServiceSettings.DatabasePath == "" {
-		configDir, err := GetConfigDir()
-		if err != nil {
-			configDir = "."
-		}
-		c.ServiceSettings.DatabasePath = filepath.Join(configDir, "yggmail.db")
-	}
+	// Always use portable path for database (ensures correct path after migration)
+	c.ServiceSettings.DatabasePath = platform.GetDatabasePath()
 	if c.ServiceSettings.MaxMessageSizeMB == 0 {
 		c.ServiceSettings.MaxMessageSizeMB = DefaultMaxMessageSizeMB
 	}

@@ -84,7 +84,12 @@ export function Backup() {
     const configRestoredHandler = async () => {
       // Configuration was restored successfully
       // Reload config from backend and navigate to dashboard
-      await loadConfig();
+      try {
+        await loadConfig();
+      } catch (error) {
+        console.error('Failed to reload config after restore:', error);
+      }
+      // Always reset state and navigate, even if loadConfig fails
       setIsRestoring(false);
       setRestoreProgress(0);
       setRestoreProgressMessage('');
@@ -194,7 +199,12 @@ export function Backup() {
         backupPath: restoreFilePath,
         password: restorePassword,
       };
-      await RestoreBackup(options);
+      const result = await RestoreBackup(options);
+
+      // Check if restore was successful (e.g., wrong password)
+      if (!result.Success) {
+        throw new Error(result.Message || t('backup.messages.restoreFailedMessage'));
+      }
 
       // Reset restore form state
       setRestoreFilePath('');

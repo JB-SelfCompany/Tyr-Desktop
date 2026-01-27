@@ -35,13 +35,13 @@ echo All prerequisites verified!
 echo.
 
 REM ========================================
-REM Step 2: Extract version from wails.json
+REM Step 2: Extract version from internal/version/version.go (single source of truth)
 REM ========================================
-echo [2/6] Reading version from wails.json...
-for /f "tokens=2 delims=:, " %%a in ('findstr /r "\"version\":" wails.json') do (
-    set VERSION=%%a
+echo [2/6] Reading version from internal/version/version.go...
+set VERSION=dev
+for /f "tokens=3 delims== " %%a in ('findstr /C:"var Version" internal\version\version.go') do (
+    set "VERSION=%%~a"
 )
-set VERSION=%VERSION:"=%
 echo Building version: %VERSION%
 echo.
 
@@ -111,10 +111,10 @@ REM ========================================
 echo [6/6] Building application...
 echo This may take several minutes...
 echo.
-echo Command: wails build -clean -platform windows/amd64 -webview2 download -ldflags "-X main.version=%VERSION%"
+echo Command: wails build -clean -platform windows/amd64 -webview2 download -ldflags "-X github.com/JB-SelfCompany/Tyr-Desktop/internal/version.Version=%VERSION%"
 echo.
 
-call wails build -clean -platform windows/amd64 -webview2 download -ldflags "-X main.version=%VERSION%"
+call wails build -clean -platform windows/amd64 -webview2 download -ldflags "-X github.com/JB-SelfCompany/Tyr-Desktop/internal/version.Version=%VERSION%"
 
 echo.
 echo.

@@ -14,7 +14,9 @@ import (
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/bindings/service"
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/bindings/system"
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/core"
+	"github.com/JB-SelfCompany/Tyr-Desktop/internal/platform"
 	"github.com/JB-SelfCompany/Tyr-Desktop/internal/tray"
+	"github.com/JB-SelfCompany/Tyr-Desktop/internal/version"
 )
 
 // App struct holds the application state and services
@@ -71,6 +73,14 @@ func NewApp() *App {
 // startup is called when the app starts
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// Migrate data from legacy directories (if any) to portable data directory
+	// This runs only once on first launch after update to portable version
+	if result, err := platform.MigrateFromLegacy(); err != nil {
+		log.Printf("Warning: Migration completed with errors: %v", err)
+	} else if result.Migrated {
+		log.Printf("Successfully migrated data from %s to portable directory", result.SourceDir)
+	}
 
 	// Initialize configuration
 	cfg, err := core.Load()
@@ -359,7 +369,7 @@ func (a *App) cancelPeerDiscoveryOperations() {
 
 // GetVersion returns the application version
 func (a *App) GetVersion() string {
-	return version
+	return version.Version
 }
 
 // ==================== System Tray Methods ====================
@@ -825,6 +835,11 @@ func (a *App) RestoreBackup(options RestoreOptionsDTO) (ResultDTO, error) {
 	restoredConfig, result, err := system.RestoreBackup(a.ctx, options)
 	if err != nil {
 		return result, err
+	}
+
+	// Check if restore was successful (e.g., wrong password returns Success: false)
+	if !result.Success {
+		return result, nil
 	}
 
 	// Update app's config reference if restore was successful
