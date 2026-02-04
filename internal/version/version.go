@@ -10,4 +10,4 @@ package version
 
 // Version is the application version.
 // This value is set at compile time via ldflags or manually updated here.
-var Version = "2.1.1"
+var Version = "2.2.0"

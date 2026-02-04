@@ -1,4 +1,4 @@
-// Y2K Futurism Design System - Main Export
+// Design System - Main Export
 
 export * from './colors';
 export * from './glassmorphism';

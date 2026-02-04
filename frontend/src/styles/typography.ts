@@ -1,21 +1,15 @@
-// Typography system for Y2K Futurism
+// Typography system
 
 // Font families
 export const fonts = {
-  // Display font for headings (futuristic, geometric)
-  display: "'Orbitron', 'Rajdhani', sans-serif",
-
-  // Body font (clean, readable)
-  body: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
-
-  // Futuristic font for special elements
-  futuristic: "'Rajdhani', 'Orbitron', sans-serif",
+  // Sans-serif for all text
+  sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
 
   // Monospace for code/technical data
-  mono: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+  mono: "'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace",
 };
 
-// Font sizes (following a modular scale)
+// Font sizes
 export const fontSizes = {
   xs: '0.75rem',     // 12px
   sm: '0.875rem',    // 14px
@@ -25,102 +19,79 @@ export const fontSizes = {
   '2xl': '1.5rem',   // 24px
   '3xl': '1.875rem', // 30px
   '4xl': '2.25rem',  // 36px
-  '5xl': '3rem',     // 48px
-  '6xl': '3.75rem',  // 60px
-  '7xl': '4.5rem',   // 72px
 };
 
 // Font weights
 export const fontWeights = {
-  thin: 100,
-  extralight: 200,
-  light: 300,
   normal: 400,
   medium: 500,
   semibold: 600,
   bold: 700,
-  extrabold: 800,
-  black: 900,
 };
 
 // Line heights
 export const lineHeights = {
-  none: 1,
   tight: 1.25,
   snug: 1.375,
   normal: 1.5,
   relaxed: 1.625,
-  loose: 2,
-};
-
-// Letter spacing
-export const letterSpacings = {
-  tighter: '-0.05em',
-  tight: '-0.025em',
-  normal: '0',
-  wide: '0.025em',
-  wider: '0.05em',
-  widest: '0.1em',
 };
 
 // Text styles (presets)
 export const textStyles = {
   // Heading styles
   h1: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes['5xl'],
-    fontWeight: fontWeights.bold,
-    lineHeight: lineHeights.tight,
-    letterSpacing: letterSpacings.tight,
-  },
-  h2: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.sans,
     fontSize: fontSizes['4xl'],
     fontWeight: fontWeights.bold,
     lineHeight: lineHeights.tight,
-    letterSpacing: letterSpacings.tight,
+  },
+  h2: {
+    fontFamily: fonts.sans,
+    fontSize: fontSizes['2xl'],
+    fontWeight: fontWeights.semibold,
+    lineHeight: lineHeights.tight,
   },
   h3: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes['3xl'],
+    fontFamily: fonts.sans,
+    fontSize: fontSizes.xl,
     fontWeight: fontWeights.semibold,
     lineHeight: lineHeights.snug,
-    letterSpacing: letterSpacings.normal,
   },
   h4: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes['2xl'],
+    fontFamily: fonts.sans,
+    fontSize: fontSizes.lg,
     fontWeight: fontWeights.semibold,
     lineHeight: lineHeights.snug,
   },
   h5: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.xl,
+    fontFamily: fonts.sans,
+    fontSize: fontSizes.base,
     fontWeight: fontWeights.medium,
     lineHeight: lineHeights.normal,
   },
   h6: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.lg,
+    fontFamily: fonts.sans,
+    fontSize: fontSizes.sm,
     fontWeight: fontWeights.medium,
     lineHeight: lineHeights.normal,
   },
 
   // Body text styles
   bodyLarge: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.sans,
     fontSize: fontSizes.lg,
     fontWeight: fontWeights.normal,
     lineHeight: lineHeights.relaxed,
   },
   body: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.sans,
     fontSize: fontSizes.base,
     fontWeight: fontWeights.normal,
     lineHeight: lineHeights.normal,
   },
   bodySmall: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.sans,
     fontSize: fontSizes.sm,
     fontWeight: fontWeights.normal,
     lineHeight: lineHeights.normal,
@@ -128,92 +99,48 @@ export const textStyles = {
 
   // Special styles
   caption: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.sans,
     fontSize: fontSizes.xs,
     fontWeight: fontWeights.normal,
     lineHeight: lineHeights.tight,
   },
-  overline: {
-    fontFamily: fonts.futuristic,
-    fontSize: fontSizes.xs,
-    fontWeight: fontWeights.semibold,
-    lineHeight: lineHeights.none,
-    letterSpacing: letterSpacings.widest,
-    textTransform: 'uppercase' as const,
+  label: {
+    fontFamily: fonts.sans,
+    fontSize: fontSizes.sm,
+    fontWeight: fontWeights.medium,
+    lineHeight: lineHeights.normal,
   },
   button: {
-    fontFamily: fonts.futuristic,
-    fontSize: fontSizes.base,
-    fontWeight: fontWeights.semibold,
-    lineHeight: lineHeights.none,
-    letterSpacing: letterSpacings.wide,
+    fontFamily: fonts.sans,
+    fontSize: fontSizes.sm,
+    fontWeight: fontWeights.medium,
+    lineHeight: lineHeights.normal,
   },
   code: {
     fontFamily: fonts.mono,
-    fontSize: fontSizes.sm,
+    fontSize: '0.9em',
     fontWeight: fontWeights.normal,
     lineHeight: lineHeights.normal,
-  },
-
-  // Futuristic display text
-  displayLarge: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes['7xl'],
-    fontWeight: fontWeights.black,
-    lineHeight: lineHeights.none,
-    letterSpacing: letterSpacings.tight,
-  },
-  displayMedium: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes['6xl'],
-    fontWeight: fontWeights.bold,
-    lineHeight: lineHeights.tight,
-    letterSpacing: letterSpacings.tight,
   },
 };
 
 // Tailwind CSS classes for text styles
 export const textClasses = {
-  h1: 'font-display text-5xl font-bold leading-tight tracking-tight',
-  h2: 'font-display text-4xl font-bold leading-tight tracking-tight',
-  h3: 'font-display text-3xl font-semibold leading-snug',
-  h4: 'font-display text-2xl font-semibold leading-snug',
-  h5: 'font-display text-xl font-medium',
-  h6: 'font-display text-lg font-medium',
+  h1: 'text-4xl font-bold leading-tight',
+  h2: 'text-2xl font-semibold leading-tight',
+  h3: 'text-xl font-semibold leading-snug',
+  h4: 'text-lg font-semibold leading-snug',
+  h5: 'text-base font-medium',
+  h6: 'text-sm font-medium',
 
-  bodyLarge: 'font-body text-lg leading-relaxed',
-  body: 'font-body text-base',
-  bodySmall: 'font-body text-sm',
+  bodyLarge: 'text-lg leading-relaxed',
+  body: 'text-base',
+  bodySmall: 'text-sm',
 
-  caption: 'font-body text-xs leading-tight',
-  overline: 'font-futuristic text-xs font-semibold uppercase tracking-widest',
-  button: 'font-futuristic text-base font-semibold tracking-wide',
-  code: 'font-mono text-sm',
-
-  displayLarge: 'font-display text-7xl font-black leading-none tracking-tight',
-  displayMedium: 'font-display text-6xl font-bold leading-tight tracking-tight',
-};
-
-// Holographic text style (static, can be combined with any text style)
-export const holographicTextStyle = {
-  background: 'linear-gradient(90deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-  backgroundSize: '200% 100%',
-};
-
-// Neon text glow effect
-export const neonTextGlow = (color: string) => ({
-  textShadow: `0 0 10px ${color}, 0 0 20px ${color}, 0 0 30px ${color}`,
-});
-
-// Gradient text utilities
-export const gradientText = {
-  holographic: 'bg-iridescent bg-clip-text text-transparent bg-[length:200%_100%]',
-  neonPink: 'bg-gradient-to-r from-neon-pink to-neon-purple bg-clip-text text-transparent',
-  neonCyan: 'bg-gradient-to-r from-neon-cyan to-neon-blue bg-clip-text text-transparent',
-  neonGreen: 'bg-gradient-to-r from-neon-green to-neon-cyan bg-clip-text text-transparent',
+  caption: 'text-xs leading-tight',
+  label: 'text-sm font-medium',
+  button: 'text-sm font-medium',
+  code: 'font-mono text-[0.9em]',
 };
 
 // Truncate text utilities
@@ -228,8 +155,7 @@ export const textAlign = {
   left: 'text-left',
   center: 'text-center',
   right: 'text-right',
-  justify: 'text-justify',
 };
 
-// Google Fonts import URL (add to HTML head)
-export const fontImportURL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
+// Google Fonts import URL
+export const fontImportURL = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap";

@@ -91,12 +91,12 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Default error UI with Y2K styling
+      // Default error UI
       return (
-        <div className="min-h-screen bg-gradient-to-br from-space-blue via-space-blue-light to-space-blue flex items-center justify-center p-6">
-          <GlassCard className="max-w-2xl w-full">
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+          <GlassCard className="max-w-2xl w-full" padding="xl">
             <div className="text-center space-y-6">
-              {/* Error Icon with Holographic Glow */}
+              {/* Error Icon */}
               <div className="flex justify-center">
                 <div className="relative">
                   <div className="absolute inset-0 bg-red-500/30 blur-xl rounded-full animate-pulse" />
@@ -118,22 +118,22 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Error Title */}
-              <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-red-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold text-red-400">
                 Oops! Something went wrong
               </h1>
 
               {/* Error Message */}
-              <p className="text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant text-lg font-body">
+              <p className="text-slate-300 text-lg">
                 We're sorry, but an unexpected error occurred. Don't worry, your data is safe.
               </p>
 
               {/* Error Details (Expandable) */}
               {this.state.error && (
                 <details className="text-left mt-4">
-                  <summary className="cursor-pointer text-md-light-outline dark:text-md-dark-outline hover:text-md-light-onSurfaceVariant dark:hover:text-md-dark-onSurfaceVariant transition-colors text-sm font-mono mb-2">
+                  <summary className="cursor-pointer text-slate-400 hover:text-slate-200 transition-colors text-sm font-mono mb-2">
                     Show error details
                   </summary>
-                  <div className="bg-md-light-errorContainer/30 dark:bg-md-dark-errorContainer/30 rounded-lg p-4 text-xs font-mono text-md-light-error dark:text-md-dark-error overflow-x-auto border border-md-light-error/30 dark:border-md-dark-error/30">
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-xs font-mono text-red-400 overflow-x-auto">
                     <div className="mb-2">
                       <strong>Error:</strong> {this.state.error.toString()}
                     </div>
@@ -157,20 +157,6 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="min-w-[140px]"
                   aria-label="Try again"
                 >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
                   Try Again
                 </Button>
 
@@ -180,20 +166,6 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="min-w-[140px]"
                   aria-label="Reload page"
                 >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
                   Reload Page
                 </Button>
               </div>

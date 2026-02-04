@@ -15,7 +15,10 @@ import {
   GetMailAddress,
   IsServiceRunning,
 } from '../wailsjs/go/main/App';
-import type { ServiceStatusDTO, PeerInfoDTO } from '../wailsjs/go/main/models';
+import { models } from '../../wailsjs/go/models';
+
+type ServiceStatusDTO = models.ServiceStatusDTO;
+type PeerInfoDTO = models.PeerInfoDTO;
 
 export interface ServiceState {
   // Service status

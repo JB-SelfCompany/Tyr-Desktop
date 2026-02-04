@@ -17,7 +17,10 @@ import {
   SetPassword,
   GetDefaultPeers,
 } from '../wailsjs/go/main/App';
-import type { ConfigDTO, PeerConfigDTO } from '../wailsjs/go/main/models';
+import { models } from '../../wailsjs/go/models';
+
+type ConfigDTO = models.ConfigDTO;
+type PeerConfigDTO = models.PeerConfigDTO;
 
 export type Theme = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'ru';
@@ -212,13 +215,13 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   getPeer: (address: string) => {
     const { config } = get();
     if (!config) return undefined;
-    return config.peers.find((p) => p.address === address);
+    return config.peers.find((p: PeerConfigDTO) => p.address === address);
   },
 
   // Get only enabled peers
   getEnabledPeers: () => {
     const { config } = get();
     if (!config) return [];
-    return config.peers.filter((p) => p.enabled);
+    return config.peers.filter((p: PeerConfigDTO) => p.enabled);
   },
 }));

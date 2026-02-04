@@ -4,13 +4,14 @@
 
 ### Настоящая P2P электронная почта поверх сети Yggdrasil
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.25%2B-00ADD8.svg)](https://golang.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org)
 [![Wails](https://img.shields.io/badge/Wails-v2.11-DF5620.svg)](https://wails.io)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey.svg)
+![Платформы](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey.svg)
 ![Загрузки](https://img.shields.io/github/downloads/JB-SelfCompany/Tyr-Desktop/total)
+[![Посетители](https://visitor-badge.laobi.icu/badge?page_id=JB-SelfCompany.Tyr-Desktop)](https://github.com/JB-SelfCompany/Tyr-Desktop)
 
 **[English](README.md) | [Русский](#)**
 
@@ -469,8 +470,6 @@ Tyr Desktop - программное обеспечение с открытым 
 
 <div align="center">
 
-**Сделано с ❤️ для децентрализованного интернета**
-
-[Сообщить об ошибке](https://github.com/JB-SelfCompany/Tyr-Desktop/issues) · [Запросить функцию](hhttps://github.com/JB-SelfCompany/Tyr-Desktop/issues)
+Made with ❤️ by <a href="https://github.com/JB-SelfCompany">JB-SelfCompany</a>
 
 </div>

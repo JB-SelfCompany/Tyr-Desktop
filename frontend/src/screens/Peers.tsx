@@ -5,9 +5,7 @@ import {
   Input,
   Modal,
   GlassCard,
-  HolographicBorder,
   PeerCard,
-  LoadingSpinner,
   PeerDiscoveryModal,
 } from '../components';
 import { useServiceStatus } from '../hooks/useServiceStatus';
@@ -22,13 +20,6 @@ import { toast } from '../components/ui/Toast';
 
 /**
  * Peers Screen - Peer management
- *
- * Features:
- * - Peer list with cards (status, latency, bandwidth)
- * - Add new peer dialog
- * - Enable/Disable toggle (TODO: backend support)
- * - Delete confirmation
- * - Apply button (appears after changes, reloads peer configuration)
  */
 export function Peers() {
   const { t } = useI18n();
@@ -56,7 +47,7 @@ export function Peers() {
   // Initialize localPeers from config when it loads
   useEffect(() => {
     if (config?.peers && Array.isArray(config.peers)) {
-      setLocalPeers(config.peers.map(p => ({ address: p.address, enabled: p.enabled })));
+      setLocalPeers(config.peers.map((p: { address: string; enabled: boolean }) => ({ address: p.address, enabled: p.enabled })));
     } else {
       setLocalPeers([]);
     }
@@ -201,16 +192,16 @@ export function Peers() {
     <div className="space-y-6 pb-6">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, type: 'spring' }}
+        transition={{ duration: 0.2 }}
         className="flex items-center justify-between"
       >
-        <div className="space-y-2">
-          <h1 className="text-5xl font-display font-black text-transparent bg-clip-text bg-iridescent bg-[length:200%_100%] animate-holographic-spin">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-100">
             {t('peers.peerManagement')}
           </h1>
-          <p className="text-lg text-white/70 font-futuristic">
+          <p className="text-sm text-slate-400 mt-1">
             {t('peers.peersConnected', { connected: connectedCount, total: totalCount })}
           </p>
         </div>
@@ -218,7 +209,6 @@ export function Peers() {
           {hasChanges && (
             <Button
               variant="secondary"
-              glow
               onClick={handleApplyChanges}
               disabled={isHotReloading}
             >
@@ -233,7 +223,6 @@ export function Peers() {
           </Button>
           <Button
             variant="primary"
-            glow
             onClick={() => setShowAddModal(true)}
           >
             {t('peers.addPeerButton')}
@@ -242,70 +231,64 @@ export function Peers() {
       </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.05 }}
         >
-          <HolographicBorder borderWidth={2} animated>
-            <GlassCard padding="md" variant="strong">
-              <div className="text-center space-y-2">
-                <p className="text-xs text-white/50 font-futuristic uppercase tracking-wide">
-                  {t('peers.stats.connected')}
-                </p>
-                <p className="text-5xl font-bold text-neon-green">
-                  {connectedCount}
-                </p>
-              </div>
-            </GlassCard>
-          </HolographicBorder>
+          <GlassCard padding="md">
+            <div className="text-center space-y-2">
+              <p className="text-xs text-slate-400 uppercase tracking-wide">
+                {t('peers.stats.connected')}
+              </p>
+              <p className="text-4xl font-bold text-emerald-400">
+                {connectedCount}
+              </p>
+            </div>
+          </GlassCard>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
         >
-          <HolographicBorder borderWidth={2}>
-            <GlassCard padding="md" variant="strong">
-              <div className="text-center space-y-2">
-                <p className="text-xs text-white/50 font-futuristic uppercase tracking-wide">
-                  {t('peers.stats.disconnected')}
-                </p>
-                <p className="text-5xl font-bold text-neon-pink">
-                  {totalCount - connectedCount}
-                </p>
-              </div>
-            </GlassCard>
-          </HolographicBorder>
+          <GlassCard padding="md">
+            <div className="text-center space-y-2">
+              <p className="text-xs text-slate-400 uppercase tracking-wide">
+                {t('peers.stats.disconnected')}
+              </p>
+              <p className="text-4xl font-bold text-red-400">
+                {totalCount - connectedCount}
+              </p>
+            </div>
+          </GlassCard>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
         >
-          <HolographicBorder borderWidth={2}>
-            <GlassCard padding="md" variant="strong">
-              <div className="text-center space-y-2">
-                <p className="text-xs text-white/50 font-futuristic uppercase tracking-wide">
-                  {t('peers.stats.totalPeers')}
-                </p>
-                <p className="text-5xl font-bold text-neon-cyan">
-                  {totalCount}
-                </p>
-              </div>
-            </GlassCard>
-          </HolographicBorder>
+          <GlassCard padding="md">
+            <div className="text-center space-y-2">
+              <p className="text-xs text-slate-400 uppercase tracking-wide">
+                {t('peers.stats.totalPeers')}
+              </p>
+              <p className="text-4xl font-bold text-slate-200">
+                {totalCount}
+              </p>
+            </div>
+          </GlassCard>
         </motion.div>
       </div>
 
       {/* Peer List */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.2, delay: 0.2 }}
       >
         <GlassCard
           title={t('peers.allPeers')}
@@ -317,9 +300,9 @@ export function Peers() {
               {mergedPeers.map((peer, index) => (
                 <motion.div
                   key={peer.address}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2, delay: index * 0.03 }}
                 >
                   <PeerCard
                     peer={{
@@ -339,15 +322,14 @@ export function Peers() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 space-y-4">
-              <div className="text-8xl mb-4">🌐</div>
-              <p className="text-xl text-white/70">{t('peers.noPeersConfigured')}</p>
-              <p className="text-sm text-white/50">
+            <div className="text-center py-12 space-y-4">
+              <div className="text-6xl mb-4">🌐</div>
+              <p className="text-lg text-slate-300">{t('peers.noPeersConfigured')}</p>
+              <p className="text-sm text-slate-400">
                 {t('peers.addPeersPrompt')}
               </p>
               <Button
                 variant="primary"
-                glow
                 onClick={() => setShowAddModal(true)}
                 className="mt-4"
               >
@@ -360,28 +342,24 @@ export function Peers() {
 
       {/* Info Box */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
+        transition={{ duration: 0.2, delay: 0.25 }}
       >
-        <HolographicBorder borderWidth={1}>
-          <div className="bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg p-6">
-            <div className="flex items-start gap-4">
-              <div className="text-4xl">💡</div>
-              <div className="flex-1 space-y-2">
-                <h3 className="text-white font-semibold text-lg">{t('peers.aboutPeers')}</h3>
-                <p className="text-sm text-white/80 leading-relaxed">
-                  {t('peers.aboutDescription')}
-                </p>
-                <div className="pt-2">
-                  <p className="text-xs text-white/60">
-                    {t('peers.defaultPeers')}
-                  </p>
-                </div>
-              </div>
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl">💡</div>
+            <div className="flex-1 space-y-2">
+              <h3 className="text-slate-100 font-semibold">{t('peers.aboutPeers')}</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                {t('peers.aboutDescription')}
+              </p>
+              <p className="text-xs text-slate-400 pt-2">
+                {t('peers.defaultPeers')}
+              </p>
             </div>
           </div>
-        </HolographicBorder>
+        </div>
       </motion.div>
 
       {/* Add Peer Modal */}
@@ -400,17 +378,17 @@ export function Peers() {
             helperText={t('peers.modal.helperText')}
             autoFocus
           />
-          <div className="bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg p-4">
-            <p className="text-sm text-white/90">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+            <p className="text-sm text-slate-200">
               <strong>{t('peers.modal.formatTitle')}</strong> {t('peers.modal.formatDescription')}
             </p>
-            <ul className="list-disc list-inside text-sm text-white/70 mt-2 space-y-1">
+            <ul className="list-disc list-inside text-sm text-slate-400 mt-2 space-y-1">
               <li>{t('peers.modal.formatItem1')}</li>
               <li>{t('peers.modal.formatItem2')}</li>
               <li>{t('peers.modal.formatItem3')}</li>
             </ul>
           </div>
-          <div className="flex gap-3 justify-end pt-4">
+          <div className="flex gap-3 justify-end pt-2">
             <Button
               variant="ghost"
               onClick={() => setShowAddModal(false)}
@@ -420,7 +398,6 @@ export function Peers() {
             </Button>
             <Button
               variant="primary"
-              glow
               onClick={handleAddPeer}
               disabled={isProcessing}
             >
@@ -438,20 +415,20 @@ export function Peers() {
         size="sm"
       >
         <div className="space-y-4">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-            <p className="text-white/90">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+            <p className="text-slate-200">
               {t('peers.modal.confirmRemove')}
             </p>
             {peerToDelete && (
-              <p className="text-sm text-white/70 font-mono mt-2 break-all">
+              <p className="text-sm text-slate-400 font-mono mt-2 break-all">
                 {peerToDelete}
               </p>
             )}
           </div>
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-slate-400">
             {t('peers.modal.removeDescription')}
           </p>
-          <div className="flex gap-3 justify-end pt-4">
+          <div className="flex gap-3 justify-end pt-2">
             <Button
               variant="ghost"
               onClick={() => setShowDeleteModal(false)}

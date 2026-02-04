@@ -2,44 +2,34 @@ import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 import { buttonVariants } from '../../styles/animations';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'neon';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'size'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  glow?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
   children: React.ReactNode;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-md-light-primary hover:bg-[#005138] dark:bg-md-dark-primary dark:hover:bg-[#89F8C7] text-md-light-onPrimary dark:text-md-dark-onPrimary border-md-light-primary dark:border-md-dark-primary',
-  secondary: 'bg-md-light-secondaryContainer hover:bg-[#B8D6C9] dark:bg-md-dark-secondaryContainer dark:hover:bg-[#405B50] text-md-light-onSecondaryContainer dark:text-md-dark-onSecondaryContainer border-md-light-secondary/30 dark:border-md-dark-secondary/30',
-  danger: 'bg-md-light-error hover:bg-[#930012] dark:bg-md-dark-error dark:hover:bg-[#FFD9D4] text-md-light-onError dark:text-md-dark-onError border-md-light-error dark:border-md-dark-error',
-  ghost: 'bg-transparent hover:bg-md-light-primaryContainer/50 dark:hover:bg-md-dark-primaryContainer/20 text-md-light-onSurface dark:text-md-dark-onSurface border-md-light-outline/30 dark:border-md-dark-outline/30',
-  neon: 'bg-gradient-to-r from-neon-pink to-neon-purple text-white border-neon-pink shadow-neon-pink',
+  primary: 'bg-emerald-500 hover:bg-emerald-400 text-white',
+  secondary: 'bg-slate-700 hover:bg-slate-600 text-slate-200',
+  danger: 'bg-red-500 hover:bg-red-400 text-white',
+  success: 'bg-green-500 hover:bg-green-400 text-white',
+  ghost: 'bg-transparent hover:bg-slate-700 text-slate-200',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-base',
-  lg: 'px-6 py-3 text-lg',
-};
-
-const glowClasses: Record<ButtonVariant, string> = {
-  primary: 'shadow-[0_0_20px_rgba(0,108,76,0.4)] dark:shadow-[0_0_20px_rgba(108,219,156,0.4)]',
-  secondary: 'shadow-[0_0_15px_rgba(77,99,87,0.3)] dark:shadow-[0_0_15px_rgba(179,204,190,0.3)]',
-  danger: 'shadow-[0_0_20px_rgba(186,26,26,0.4)] dark:shadow-[0_0_20px_rgba(255,180,171,0.4)]',
-  ghost: '',
-  neon: 'shadow-neon-pink animate-glow-pulse',
+  sm: 'px-3 py-1.5 text-xs',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-6 py-2.5 text-base',
 };
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
-  glow = false,
   loading = false,
   fullWidth = false,
   disabled,
@@ -47,15 +37,14 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'font-futuristic font-semibold tracking-wide rounded-lg border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500/50';
   const variantClass = variantClasses[variant];
   const sizeClass = sizeClasses[size];
-  const glowClass = glow ? glowClasses[variant] : '';
   const widthClass = fullWidth ? 'w-full' : '';
 
   return (
     <motion.button
-      className={`${baseClasses} ${variantClass} ${sizeClass} ${glowClass} ${widthClass} ${className}`}
+      className={`${baseClasses} ${variantClass} ${sizeClass} ${widthClass} ${className}`}
       variants={buttonVariants}
       initial="initial"
       whileHover={!disabled && !loading ? "hover" : undefined}
@@ -69,7 +58,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <span className="flex items-center justify-center gap-2">
           <svg
-            className="animate-spin h-5 w-5"
+            className="animate-spin h-4 w-4"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

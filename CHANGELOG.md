@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-02-04
+
+### Changed
+
+- **Unified Visual Design** - Completely redesigned UI to design language: Slate + Emerald color palette, glassmorphism effects, consistent border-radius and spacing.
+- **Dark-Only Theme** - Switched to dark-only mode. Removed light/system theme options from Settings. All `dark:` Tailwind class prefixes and light theme CSS variables removed.
+- **Updated Base Font Size** - Increased base font size from 14px to 16px for better readability.
+- **Sidebar Redesign** - Updated sidebar to 256px width with glassmorphism background, centered logo, and rounded active navigation state with emerald accent.
+- **Component Styling Overhaul** - Updated core UI components:
+  - Button: `rounded-xl`, removed borders from variants
+  - Input: `rounded-xl`, darker background (`bg-slate-800`), refined focus ring
+  - GlassCard: `rounded-2xl`, added `glass` class and `shadow-glass`
+  - Modal: `rounded-2xl`, updated border styling
+- **CSS Architecture** - Rewrote `style.css`: removed aggressive `!important` overrides, added proper CSS variables and `.glass`/`.shadow-glass` utility classes.
+- **Legacy Theme Cleanup** - Replaced all old theme classes (`neon-cyan`, `space-blue`, `md-light-*`, `md-dark-*`) with Slate + Emerald equivalents across PeerDiscoveryModal, LogViewer, and ErrorBoundary components.
+
+### Removed
+
+- **Theme Selector** - Removed theme selection (Light/Dark/System) from General Settings. Application now uses dark theme exclusively.
+
 ## [2.1.1] - 2025-01-27
 
 ### Added
@@ -83,11 +103,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - System tray support with show/hide functionality
 - Auto-start on system boot
 - Real-time peer management with hot reload
-- Dark/Light/System theme support
+- Dark theme with glassmorphism UI
 - English and Russian localization
 - Real-time service status monitoring
 - Log viewer
 
+[2.2.0]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.0.2...2.1.0
 [2.0.2]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.0.1...2.0.2

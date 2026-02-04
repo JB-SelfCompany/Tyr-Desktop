@@ -23,37 +23,36 @@ const statusConfig: Record<ServiceStatus, {
     variant: 'success',
     icon: '●',
     textKey: 'dashboard.status.running',
-    color: '#4CAF50',
+    color: '#22c55e', // green-500
   },
   Stopped: {
     variant: 'default',
     icon: '○',
     textKey: 'dashboard.status.stopped',
-    color: '#9E9E9E',
+    color: '#6b7280', // gray-500
   },
   Starting: {
     variant: 'warning',
     icon: '◐',
     textKey: 'dashboard.status.starting',
-    color: '#FF9800',
+    color: '#f59e0b', // amber-500
   },
   Stopping: {
     variant: 'warning',
     icon: '◑',
     textKey: 'dashboard.status.stopping',
-    color: '#FF9800',
+    color: '#f59e0b', // amber-500
   },
   Error: {
     variant: 'error',
     icon: '✕',
     textKey: 'dashboard.status.error',
-    color: '#F44336',
+    color: '#ef4444', // red-500
   },
 };
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = React.memo(({
   status,
-  animated = true,
   size = 'md',
   showText = true,
   className = '',
@@ -66,13 +65,12 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = React.memo(({
     <Badge
       variant={config.variant}
       size={size}
-      animated={false}
-      glow={status === 'Running'}
+      animated={isTransitioning}
       className={className}
     >
       {/* Icon with optional rotation for transitioning states */}
       <motion.span
-        className="text-lg leading-none"
+        className="text-sm leading-none"
         animate={isTransitioning ? { rotate: 360 } : {}}
         transition={
           isTransitioning
@@ -90,7 +88,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = React.memo(({
 
       {/* Status text */}
       {showText && (
-        <span className="font-futuristic font-semibold">
+        <span className="font-medium">
           {t(config.textKey)}
         </span>
       )}

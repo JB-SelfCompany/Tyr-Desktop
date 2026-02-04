@@ -4,16 +4,27 @@
  */
 
 import { useEffect } from 'react';
-import { EventsOn } from '../wailsjs/runtime/runtime';
+import { EventsOn } from '../../wailsjs/runtime/runtime';
 import { useServiceStore } from '../store/serviceStore';
-import { useLogsStore } from '../store/logsStore';
-import type {
-  LogEventDTO,
-  MailEventDTO,
-  ConnectionEventDTO,
-  ServiceStatusDTO,
-  PeerInfoDTO,
-} from '../wailsjs/go/main/models';
+import { useLogsStore, LogEventDTO } from '../store/logsStore';
+import { models } from '../../wailsjs/go/models';
+
+type ServiceStatusDTO = models.ServiceStatusDTO;
+type PeerInfoDTO = models.PeerInfoDTO;
+
+// Local types for events not in models
+interface MailEventDTO {
+  subject: string;
+  from: string;
+  to: string;
+  timestamp: string;
+}
+
+interface ConnectionEventDTO {
+  type: 'connected' | 'disconnected';
+  peer: string;
+  timestamp: string;
+}
 
 /**
  * Event names emitted by the backend

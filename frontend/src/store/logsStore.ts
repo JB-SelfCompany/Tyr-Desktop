@@ -4,7 +4,14 @@
  */
 
 import { create } from 'zustand';
-import type { LogEventDTO } from '../wailsjs/go/main/models';
+
+// Local type definition for log events
+export interface LogEventDTO {
+  timestamp: string;
+  level: string;
+  tag: string;
+  message: string;
+}
 
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'DEBUG' | 'ALL';
 

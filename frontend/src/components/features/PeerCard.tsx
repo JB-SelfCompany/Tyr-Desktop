@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { GlassCard } from '../layout/GlassCard';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -23,7 +22,6 @@ interface PeerCardProps {
   variant?: 'default' | 'compact';
 }
 
-// Format bytes to human-readable format
 const formatBytes = (bytes?: number): string => {
   if (!bytes) return '0 B';
   const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -31,7 +29,6 @@ const formatBytes = (bytes?: number): string => {
   return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 };
 
-// Format uptime to human-readable format
 const formatUptime = (seconds?: number): string => {
   if (!seconds) return '0s';
   const days = Math.floor(seconds / 86400);
@@ -43,7 +40,6 @@ const formatUptime = (seconds?: number): string => {
   return `${minutes}m`;
 };
 
-// Truncate address
 const truncateAddress = (address: string, length: number = 20): string => {
   if (address.length <= length) return address;
   const start = Math.floor(length / 2);
@@ -65,17 +61,17 @@ export const PeerCard: React.FC<PeerCardProps> = React.memo(({
       variant="default"
       padding="md"
       hoverable
-      accentColor={peer.connected ? '#006C4C' : undefined}
+      accentColor={peer.connected ? '#10b981' : undefined}
     >
       <div className="space-y-3">
         {/* Header: Address + Status */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-mono text-md-light-onSurface dark:text-md-dark-onSurface truncate" title={peer.address}>
+            <p className="text-sm font-mono text-slate-200 truncate" title={peer.address}>
               {truncateAddress(peer.address, 30)}
             </p>
             {!peer.enabled && (
-              <p className="text-xs text-md-light-outline dark:text-md-dark-outline mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 {t('peers.status.disabled')}
               </p>
             )}
@@ -85,7 +81,7 @@ export const PeerCard: React.FC<PeerCardProps> = React.memo(({
             size="sm"
             animated={false}
           >
-            <span className="text-base leading-none">
+            <span className="text-sm leading-none">
               {peer.connected ? '●' : peer.enabled ? '◐' : '○'}
             </span>
             <span>
@@ -104,57 +100,53 @@ export const PeerCard: React.FC<PeerCardProps> = React.memo(({
           variant === 'compact' ? (
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
               {peer.latency !== undefined && (
-                <span className="text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant">
-                  <span className="text-md-light-outline dark:text-md-dark-outline">Latency:</span> <span className="font-mono font-semibold">{peer.latency}ms</span>
+                <span className="text-slate-300">
+                  <span className="text-slate-500">Latency:</span> <span className="font-mono font-medium">{peer.latency}ms</span>
                 </span>
               )}
               {peer.uptime !== undefined && (
-                <span className="text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant">
-                  <span className="text-md-light-outline dark:text-md-dark-outline">Uptime:</span> <span className="font-mono font-semibold">{formatUptime(peer.uptime)}</span>
+                <span className="text-slate-300">
+                  <span className="text-slate-500">Uptime:</span> <span className="font-mono font-medium">{formatUptime(peer.uptime)}</span>
                 </span>
               )}
               {peer.rxBytes !== undefined && (
-                <span className="text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant">
-                  <span className="text-md-light-outline dark:text-md-dark-outline">Down:</span> <span className="font-mono font-semibold text-md-light-tertiary dark:text-md-dark-tertiary">{formatBytes(peer.rxBytes)}</span>
+                <span className="text-slate-300">
+                  <span className="text-slate-500">Down:</span> <span className="font-mono font-medium text-blue-400">{formatBytes(peer.rxBytes)}</span>
                 </span>
               )}
               {peer.txBytes !== undefined && (
-                <span className="text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant">
-                  <span className="text-md-light-outline dark:text-md-dark-outline">Up:</span> <span className="font-mono font-semibold text-md-light-secondary dark:text-md-dark-secondary">{formatBytes(peer.txBytes)}</span>
+                <span className="text-slate-300">
+                  <span className="text-slate-500">Up:</span> <span className="font-mono font-medium text-emerald-400">{formatBytes(peer.txBytes)}</span>
                 </span>
               )}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {/* Latency */}
               {peer.latency !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-md-light-outline dark:text-md-dark-outline text-xs font-body">Latency</span>
-                  <span className="text-md-light-onSurface dark:text-md-dark-onSurface font-semibold font-mono">{peer.latency}ms</span>
+                  <span className="text-slate-500 text-xs">Latency</span>
+                  <span className="text-slate-200 font-medium font-mono">{peer.latency}ms</span>
                 </div>
               )}
 
-              {/* Uptime */}
               {peer.uptime !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-md-light-outline dark:text-md-dark-outline text-xs font-body">Uptime</span>
-                  <span className="text-md-light-onSurface dark:text-md-dark-onSurface font-semibold font-mono">{formatUptime(peer.uptime)}</span>
+                  <span className="text-slate-500 text-xs">Uptime</span>
+                  <span className="text-slate-200 font-medium font-mono">{formatUptime(peer.uptime)}</span>
                 </div>
               )}
 
-              {/* RX (Download) */}
               {peer.rxBytes !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-md-light-outline dark:text-md-dark-outline text-xs font-body">Downloaded</span>
-                  <span className="text-md-light-tertiary dark:text-md-dark-tertiary font-semibold font-mono">{formatBytes(peer.rxBytes)}</span>
+                  <span className="text-slate-500 text-xs">Downloaded</span>
+                  <span className="text-blue-400 font-medium font-mono">{formatBytes(peer.rxBytes)}</span>
                 </div>
               )}
 
-              {/* TX (Upload) */}
               {peer.txBytes !== undefined && (
                 <div className="flex flex-col">
-                  <span className="text-md-light-outline dark:text-md-dark-outline text-xs font-body">Uploaded</span>
-                  <span className="text-md-light-secondary dark:text-md-dark-secondary font-semibold font-mono">{formatBytes(peer.txBytes)}</span>
+                  <span className="text-slate-500 text-xs">Uploaded</span>
+                  <span className="text-emerald-400 font-medium font-mono">{formatBytes(peer.txBytes)}</span>
                 </div>
               )}
             </div>
@@ -163,7 +155,7 @@ export const PeerCard: React.FC<PeerCardProps> = React.memo(({
 
         {/* Actions */}
         {showActions && (
-          <div className="flex gap-2 pt-2 border-t border-md-light-outline/30 dark:border-md-dark-outline/30">
+          <div className="flex gap-2 pt-2 border-t border-slate-700">
             {onToggle && (
               <Button
                 variant="ghost"

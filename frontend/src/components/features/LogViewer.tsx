@@ -21,10 +21,10 @@ interface LogViewerProps {
 }
 
 const levelColors: Record<LogLevel, string> = {
-  INFO: 'text-md-light-tertiary dark:text-md-dark-tertiary',
-  WARN: 'text-md-light-onErrorContainer dark:text-md-dark-onErrorContainer',
-  ERROR: 'text-md-light-error dark:text-md-dark-error',
-  DEBUG: 'text-md-light-outline dark:text-md-dark-outline',
+  INFO: 'text-blue-400',
+  WARN: 'text-amber-400',
+  ERROR: 'text-red-400',
+  DEBUG: 'text-slate-500',
 };
 
 const levelBadgeVariant: Record<LogLevel, 'info' | 'warning' | 'error' | 'default'> = {
@@ -158,7 +158,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       <div className="relative">
         <div
           ref={scrollContainerRef}
-          className="bg-md-light-surfaceVariant/50 dark:bg-md-dark-surfaceVariant/50 backdrop-blur-lg border border-md-light-outline/30 dark:border-md-dark-outline/30 rounded-xl p-4 font-mono text-sm overflow-y-auto"
+          className="glass rounded-2xl shadow-glass p-4 font-mono text-sm overflow-y-auto"
           style={{ maxHeight }}
           onScroll={handleScroll}
         >
@@ -169,7 +169,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-center text-md-light-outline dark:text-md-dark-outline py-8"
+                  className="text-center text-slate-500 py-8"
                 >
                   No logs to display
                 </motion.div>
@@ -181,10 +181,10 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-md-light-primaryContainer/20 dark:hover:bg-md-dark-primaryContainer/10 transition-colors"
+                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-700/30 transition-colors"
                   >
                     {/* Timestamp */}
-                    <span className="text-md-light-outline dark:text-md-dark-outline text-xs whitespace-nowrap flex-shrink-0">
+                    <span className="text-slate-500 text-xs whitespace-nowrap flex-shrink-0">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </span>
 
@@ -212,7 +212,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             onClick={scrollToBottom}
-            className="absolute bottom-4 right-4 p-2 rounded-full bg-md-light-primary dark:bg-md-dark-primary text-md-light-onPrimary dark:text-md-dark-onPrimary shadow-lg hover:bg-md-light-primaryContainer dark:hover:bg-md-dark-primaryContainer transition-colors"
+            className="absolute bottom-4 right-4 p-2 rounded-full bg-emerald-500 text-white shadow-lg hover:bg-emerald-400 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -227,7 +227,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 text-sm text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant font-body">
+      <div className="flex gap-4 text-sm text-slate-400">
         <span>Total: {logs.length}</span>
         <span>Filtered: {filteredLogs.length}</span>
       </div>

@@ -5,8 +5,6 @@ import {
   Button,
   Input,
   GlassCard,
-  HolographicBorder,
-  LoadingSpinner,
 } from '../components';
 import {
   SetOnboardingComplete,
@@ -15,7 +13,6 @@ import {
   SetLanguage,
   SetTheme,
   GetSystemLanguage,
-  GetSystemTheme,
   GetDefaultPeers,
   FindAvailablePeers,
   GetCachedDiscoveredPeers,
@@ -26,27 +23,17 @@ import {
   GetConfig,
   RemovePeer,
 } from '../../wailsjs/go/main/App';
-import { LogPrint } from '../wailsjs/runtime/runtime';
+import { LogPrint, EventsOn, EventsOff } from '../../wailsjs/runtime/runtime';
 import { toast } from '../components/ui/Toast';
-import type { RestoreOptionsDTO } from '../../wailsjs/go/main/models';
-import type { DiscoveredPeer, PeerDiscoveryProgress, PeerDiscoveryResult } from '../../wailsjs/go/main/models';
-import { EventsOn, EventsOff } from '../wailsjs/runtime/runtime';
+import { core, models } from '../../wailsjs/go/models';
+
+type DiscoveredPeer = core.DiscoveredPeer;
+type RestoreOptionsDTO = models.RestoreOptionsDTO;
 
 type OnboardingStep = 1 | 2 | 3;
 
 /**
- * Onboarding Screen - First-time setup wizard (3 screens like Android version)
- *
- * Flow:
- * 1. Welcome screen with feature chips
- * 2. Password setup with backup restore option
- * 3. Peer configuration with discovery and default peers toggle
- *
- * Features:
- * - Auto-detect system language and theme
- * - Peer discovery with caching (24h TTL)
- * - Use default peers toggle
- * - Backup restore option
+ * Onboarding Screen - First-time setup wizard
  */
 interface OnboardingProps {
   onComplete: () => void | Promise<void>;
@@ -91,10 +78,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         await SetLanguage(systemLang);
         await i18n.changeLanguage(systemLang);
 
-        // Detect and set system theme
-        const systemTheme = await GetSystemTheme();
-        LogPrint(`[Onboarding] Detected system theme: ${systemTheme}`);
-        await SetTheme(systemTheme);
+        // Set dark theme (dark-only mode)
+        await SetTheme('dark');
       } catch (error) {
         LogPrint(`[Onboarding] Error initializing settings: ${error}`);
       }
@@ -234,8 +219,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       const result = await RestoreBackup(options);
 
       // Check if restore was successful (e.g., wrong password)
-      if (!result.Success) {
-        throw new Error(result.Message || t('onboarding.messages.restoreFailedMessage'));
+      if (!result.success) {
+        throw new Error(result.message || t('onboarding.messages.restoreFailedMessage'));
       }
 
       LogPrint('[Onboarding] Backup restored successfully');
@@ -375,34 +360,34 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       return (
         <motion.div
           key="welcome"
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
+          exit={{ opacity: 0, x: -20 }}
           className="text-center space-y-4"
         >
           <div className="text-5xl sm:text-6xl mb-3">🚀</div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-black text-transparent bg-clip-text bg-iridescent bg-[length:200%_100%]">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-slate-100">
             {t('onboarding.welcomeTitle')}
           </h2>
-          <p className="text-sm sm:text-base text-white/70 max-w-xl mx-auto px-2">
+          <p className="text-sm text-slate-400 max-w-xl mx-auto px-2">
             {t('onboarding.welcomeDescription')}
           </p>
 
           {/* Feature chips */}
           <div className="flex flex-wrap justify-center gap-2 pt-2">
-            <div className="px-3 py-1.5 bg-secondary/30 border border-secondary/50 rounded-full">
-              <span className="text-xs font-medium text-white">{t('onboarding.features.decentralized')}</span>
+            <div className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-full">
+              <span className="text-xs font-medium text-emerald-400">{t('onboarding.features.decentralized')}</span>
             </div>
-            <div className="px-3 py-1.5 bg-tertiary/30 border border-tertiary/50 rounded-full">
-              <span className="text-xs font-medium text-white">{t('onboarding.features.encrypted')}</span>
+            <div className="px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-full">
+              <span className="text-xs font-medium text-blue-400">{t('onboarding.features.encrypted')}</span>
             </div>
-            <div className="px-3 py-1.5 bg-primary/30 border border-primary/50 rounded-full">
-              <span className="text-xs font-medium text-white">{t('onboarding.features.p2p')}</span>
+            <div className="px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-full">
+              <span className="text-xs font-medium text-amber-400">{t('onboarding.features.p2p')}</span>
             </div>
           </div>
 
           <div className="pt-4">
-            <Button variant="primary" glow onClick={handleNext}>
+            <Button variant="primary" onClick={handleNext}>
               {t('onboarding.getStarted')}
             </Button>
           </div>
@@ -415,17 +400,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       return (
         <motion.div
           key="password"
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
+          exit={{ opacity: 0, x: -20 }}
           className="space-y-3 w-full"
         >
           <div className="text-center space-y-1">
             <div className="text-3xl mb-2">🔐</div>
-            <h2 className="text-xl sm:text-2xl font-display font-bold text-white">
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-100">
               {t('onboarding.password.title')}
             </h2>
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-slate-400">
               {t('onboarding.password.description')}
             </p>
           </div>
@@ -446,8 +431,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <div className="bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg p-2">
-              <p className="text-xs text-white/80">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
+              <p className="text-xs text-slate-300">
                 {t('onboarding.password.securityInfo')}
               </p>
             </div>
@@ -455,9 +440,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
           {/* Divider with OR */}
           <div className="flex items-center gap-3 py-2">
-            <div className="flex-1 h-px bg-white/20"></div>
-            <span className="text-xs text-white/50 font-medium">{t('onboarding.password.or')}</span>
-            <div className="flex-1 h-px bg-white/20"></div>
+            <div className="flex-1 h-px bg-slate-700"></div>
+            <span className="text-xs text-slate-500 font-medium">{t('onboarding.password.or')}</span>
+            <div className="flex-1 h-px bg-slate-700"></div>
           </div>
 
           {/* Restore from backup button */}
@@ -474,18 +459,18 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {showRestoreDialog && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-space-blue border border-white/20 rounded-xl p-6 max-w-md w-full space-y-4"
+                className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-md w-full space-y-4"
               >
-                <h3 className="text-xl font-bold text-white">{t('onboarding.backupFile.title')}</h3>
+                <h3 className="text-xl font-semibold text-slate-100">{t('onboarding.backupFile.title')}</h3>
 
                 <div className="space-y-3">
-                  <div className="bg-space-blue/50 border border-white/20 rounded-lg p-3">
+                  <div className="bg-slate-700 rounded-lg p-3">
                     {backupFilePath ? (
-                      <p className="text-white font-mono text-xs break-all">{backupFilePath}</p>
+                      <p className="text-slate-200 font-mono text-xs break-all">{backupFilePath}</p>
                     ) : (
-                      <p className="text-white/50 text-center py-2 text-sm">
+                      <p className="text-slate-400 text-center py-2 text-sm">
                         {t('onboarding.backupFile.noFileSelected')}
                       </p>
                     )}
@@ -506,7 +491,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                       />
                       <Button
                         variant="primary"
-                        glow
                         onClick={handleRestoreBackup}
                         disabled={isProcessing}
                         className="w-full"
@@ -536,17 +520,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       return (
         <motion.div
           key="peers"
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
+          exit={{ opacity: 0, x: -20 }}
           className="space-y-2 w-full"
         >
           <div className="text-center flex-shrink-0">
             <div className="text-2xl">🌐</div>
-            <h2 className="text-lg sm:text-xl font-display font-bold text-white">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-100">
               {t('onboarding.peers.title')}
             </h2>
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-slate-400">
               {t('onboarding.peers.description')}
             </p>
           </div>
@@ -555,7 +539,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             {/* Protocol Selection & Max RTT */}
             <GlassCard padding="sm">
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-white/90">
+                <label className="block text-xs font-medium text-slate-200">
                   {t('peers.discovery.protocols')}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -566,8 +550,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                       disabled={isSearching}
                       className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all ${
                         selectedProtocols.includes(proto.value)
-                          ? 'bg-neon-cyan/20 border-2 border-neon-cyan text-white'
-                          : 'bg-white/5 border border-white/20 text-white/70 hover:bg-white/10'
+                          ? 'bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400'
+                          : 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
                       }`}
                     >
                       {proto.label}
@@ -578,7 +562,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               {/* Max RTT */}
               <div className="pt-2">
-                <label className="block text-xs font-medium text-white/90 mb-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1">
                   {t('peers.discovery.maxRTT')}
                 </label>
                 <input
@@ -586,7 +570,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   value={maxRTT}
                   onChange={(e) => setMaxRTT(parseInt(e.target.value) || 500)}
                   disabled={isSearching}
-                  className="w-full px-3 py-1.5 text-sm bg-white/5 border border-white/20 rounded-lg text-white focus:border-neon-cyan focus:outline-none"
+                  className="w-full px-3 py-1.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </GlassCard>
@@ -595,7 +579,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="primary"
-                glow
                 size="sm"
                 onClick={handleFindPeers}
                 disabled={isSearching || selectedProtocols.length === 0}
@@ -606,7 +589,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               <GlassCard padding="sm">
                 <div className="flex items-center justify-between h-full">
-                  <span className="text-xs text-white/90 mr-2">{t('onboarding.peers.useDefaultPeers')}</span>
+                  <span className="text-xs text-slate-200 mr-2">{t('onboarding.peers.useDefaultPeers')}</span>
                   <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                     <input
                       type="checkbox"
@@ -619,7 +602,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                       }}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-neon-cyan rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-neon-cyan peer-checked:to-primary"></div>
+                    <div className="w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-500 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                   </label>
                 </div>
               </GlassCard>
@@ -628,7 +611,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             {/* Cache indicator */}
             {hasCachedPeers && discoveredPeers.length > 0 && (
               <div className="flex items-center justify-center gap-2">
-                <span className="text-xs text-white/50">{t('onboarding.peers.fromCache')}</span>
+                <span className="text-xs text-slate-500">{t('onboarding.peers.fromCache')}</span>
               </div>
             )}
 
@@ -641,16 +624,16 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 <GlassCard padding="sm" variant="strong">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/90">
+                      <span className="text-slate-300">
                         {searchProgress.current} / {searchProgress.total}
                       </span>
-                      <span className="text-neon-green font-bold">
+                      <span className="text-emerald-400 font-semibold">
                         {searchProgress.available_count} {t('peers.discovery.available')}
                       </span>
                     </div>
-                    <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="relative h-1.5 bg-slate-700 rounded-full overflow-hidden">
                       <motion.div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-neon-cyan to-neon-green"
+                        className="absolute inset-y-0 left-0 bg-emerald-500"
                         initial={{ width: 0 }}
                         animate={{ width: `${progressPercent}%` }}
                         transition={{ duration: 0.3 }}
@@ -664,7 +647,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             {/* Instructions or peer list */}
             {!useDefaultPeers && discoveredPeers.length === 0 && !isSearching && (
               <GlassCard padding="sm">
-                <p className="text-xs text-white/70">
+                <p className="text-xs text-slate-400">
                   {t('onboarding.peers.instructions')}
                 </p>
               </GlassCard>
@@ -675,7 +658,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {!useDefaultPeers && discoveredPeers.length > 0 && (
             <div className="flex-shrink-0">
               <GlassCard padding="sm" className="flex flex-col overflow-hidden">
-                <div className="max-h-48 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-1">
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
                   {[...discoveredPeers]
                     .sort((a, b) => a.rtt - b.rtt)
                     .map((peer) => {
@@ -686,19 +669,19 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                           onClick={() => togglePeerSelection(peer)}
                           className={`p-2 rounded-lg cursor-pointer transition-all ${
                             isSelected
-                              ? 'bg-primary/20 border-2 border-primary'
-                              : 'bg-space-blue/30 border border-white/10 hover:border-white/30'
+                              ? 'bg-emerald-500/20 border-2 border-emerald-500'
+                              : 'bg-slate-700 border border-slate-600 hover:border-slate-500'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="text-white font-mono text-xs truncate">{peer.address}</p>
-                              <p className="text-white/50 text-[10px]">
+                              <p className="text-slate-200 font-mono text-xs truncate">{peer.address}</p>
+                              <p className="text-slate-500 text-[10px]">
                                 {peer.protocol} • {peer.rtt}ms
                               </p>
                             </div>
                             {isSelected && (
-                              <div className="ml-2 text-primary text-sm">✓</div>
+                              <div className="ml-2 text-emerald-400 text-sm">✓</div>
                             )}
                           </div>
                         </div>
@@ -716,58 +699,56 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-space-blue via-space-blue-light to-space-blue flex flex-col">
+    <div className="h-screen bg-slate-900 flex flex-col">
       <div className="w-full max-w-6xl mx-auto py-6 px-4 sm:px-6 flex flex-col h-full">
         {/* Progress Bar */}
         {step > 1 && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-4 flex-shrink-0"
           >
-            <HolographicBorder animated borderWidth={1}>
-              <div className="bg-space-blue/50 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-xs text-white/70 font-futuristic">
-                    {t('onboarding.progress.step')
-                      .replace('{{current}}', String(step))
-                      .replace('{{total}}', String(totalSteps))}
-                  </span>
-                  <span className="text-xs text-white/70 font-futuristic">
-                    {Math.round((step / totalSteps) * 100)}%
-                  </span>
-                </div>
-                <div className="h-1.5 bg-space-blue-dark rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(step / totalSteps) * 100}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className="h-full bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-green"
-                  />
-                </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs text-slate-400">
+                  {t('onboarding.progress.step')
+                    .replace('{{current}}', String(step))
+                    .replace('{{total}}', String(totalSteps))}
+                </span>
+                <span className="text-xs text-slate-400">
+                  {Math.round((step / totalSteps) * 100)}%
+                </span>
               </div>
-            </HolographicBorder>
+              <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(step / totalSteps) * 100}%` }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="h-full bg-emerald-500"
+                />
+              </div>
+            </div>
           </motion.div>
         )}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-h-0">
           <GlassCard padding="lg" variant="strong" className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-2">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2">
               <AnimatePresence mode="wait">{renderStepContent()}</AnimatePresence>
             </div>
 
             {/* Navigation Buttons */}
             {step > 1 && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex justify-between gap-3 border-t border-white/10 flex-shrink-0 ${step === 3 ? 'mt-3 pt-3' : 'mt-6 pt-6'}`}
+                className={`flex justify-between gap-3 border-t border-slate-700 flex-shrink-0 ${step === 3 ? 'mt-3 pt-3' : 'mt-6 pt-6'}`}
               >
                 <Button variant="ghost" size="sm" onClick={handleBack} disabled={isProcessing}>
                   {t('onboarding.back')}
                 </Button>
-                <Button variant="primary" glow size="sm" onClick={handleNext} disabled={isProcessing}>
+                <Button variant="primary" size="sm" onClick={handleNext} disabled={isProcessing}>
                   {step === 3 ? t('onboarding.finish') : t('onboarding.next')}
                 </Button>
               </motion.div>

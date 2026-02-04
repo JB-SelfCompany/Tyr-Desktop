@@ -120,8 +120,8 @@ function App() {
     return (
       <>
         <ToastProvider />
-        <div className="min-h-screen bg-gradient-to-br from-space-blue via-space-blue-light to-space-blue flex items-center justify-center">
-          <LoadingSpinner size="xl" variant="holographic" text="Loading Tyr Desktop..." fullScreen />
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+          <LoadingSpinner size="xl" text="Loading Tyr Desktop..." fullScreen />
         </div>
       </>
     );
@@ -130,7 +130,7 @@ function App() {
   // Loading fallback component
   const ScreenLoadingFallback = (
     <div className="flex items-center justify-center min-h-[400px]">
-      <LoadingSpinner size="lg" variant="holographic" text="Loading..." />
+      <LoadingSpinner size="lg" text="Loading..." />
     </div>
   );
 

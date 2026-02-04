@@ -11,7 +11,7 @@ export type { BadgeVariant, BadgeSize } from './Badge';
 export { Modal } from './Modal';
 
 export { LoadingSpinner, InlineSpinner } from './LoadingSpinner';
-export type { SpinnerSize, SpinnerVariant } from './LoadingSpinner';
+export type { SpinnerSize } from './LoadingSpinner';
 
 export { ToastProvider, toast } from './Toast';
 

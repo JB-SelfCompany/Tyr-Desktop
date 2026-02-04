@@ -8,144 +8,128 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Material Design 3 Colors - Flat structure for Tailwind
-        // Light Theme
-        'md-light-primary': '#006C4C',
-        'md-light-onPrimary': '#FFFFFF',
-        'md-light-primaryContainer': '#89F8C7',
-        'md-light-onPrimaryContainer': '#002114',
-        'md-light-secondary': '#4D6357',
-        'md-light-onSecondary': '#FFFFFF',
-        'md-light-secondaryContainer': '#CFE9D9',
-        'md-light-onSecondaryContainer': '#0A1F16',
-        'md-light-tertiary': '#3D6373',
-        'md-light-onTertiary': '#FFFFFF',
-        'md-light-tertiaryContainer': '#C1E8FB',
-        'md-light-onTertiaryContainer': '#001F29',
-        'md-light-error': '#BA1A1A',
-        'md-light-errorContainer': '#FFDAD6',
-        'md-light-onError': '#FFFFFF',
-        'md-light-onErrorContainer': '#410002',
-        'md-light-background': '#F5F7F5',
-        'md-light-onBackground': '#1A1C1A',
-        'md-light-surface': '#FEFFFE',
-        'md-light-onSurface': '#1A1C1A',
-        'md-light-surfaceVariant': '#DDE5DD',
-        'md-light-onSurfaceVariant': '#414942',
-        'md-light-outline': '#707973',
+        // Slate + Emerald palette
+        // Primary accent - Emerald
+        'primary': '#10b981',           // emerald-500
+        'primary-hover': '#34d399',     // emerald-400
+        'primary-dim': '#065f46',       // emerald-800
 
-        // Dark Theme
-        'md-dark-primary': '#6CDB9C',
-        'md-dark-onPrimary': '#003826',
-        'md-dark-primaryContainer': '#005138',
-        'md-dark-onPrimaryContainer': '#89F8C7',
-        'md-dark-secondary': '#B3CCBE',
-        'md-dark-onSecondary': '#1F352A',
-        'md-dark-secondaryContainer': '#354B40',
-        'md-dark-onSecondaryContainer': '#CFE9D9',
-        'md-dark-tertiary': '#A5CCDE',
-        'md-dark-onTertiary': '#073543',
-        'md-dark-tertiaryContainer': '#244C5B',
-        'md-dark-onTertiaryContainer': '#C1E8FB',
-        'md-dark-error': '#FFB4AB',
-        'md-dark-errorContainer': '#93000A',
-        'md-dark-onError': '#690005',
-        'md-dark-onErrorContainer': '#FFDAD6',
-        'md-dark-background': '#191C1A',
-        'md-dark-onBackground': '#E8F0E8',
-        'md-dark-surface': '#191C1A',
-        'md-dark-onSurface': '#E8F0E8',
-        'md-dark-surfaceVariant': '#404943',
-        'md-dark-onSurfaceVariant': '#C1CFC1',
-        'md-dark-outline': '#899389',
-        // Status Colors (from Android)
+        // Slate palette for backgrounds
+        'slate': {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
+        },
+
+        // Emerald palette for accents
+        'emerald': {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+        },
+
+        // Status Colors
         status: {
-          starting: '#FF9800',
-          running: '#4CAF50',
-          stopping: '#FF9800',
-          stopped: '#9E9E9E',
-          error: '#F44336',
+          starting: '#f59e0b',    // amber-500
+          running: '#22c55e',     // green-500
+          stopping: '#f59e0b',    // amber-500
+          stopped: '#6b7280',     // gray-500
+          error: '#ef4444',       // red-500
         },
-        // Legacy Y2K Neon Colors (for backward compatibility)
-        neon: {
-          pink: '#FF00FF',
-          cyan: '#00FFFF',
-          green: '#00FF88',
-          yellow: '#FFFF00',
-          purple: '#9D00FF',
-          blue: '#0080FF',
+
+        // Background colors for theme
+        'bg-primary': {
+          light: '#f8fafc',       // slate-50
+          dark: '#1e293b',        // slate-800
         },
-        // Updated Background colors with better contrast
-        'space-blue': {
-          DEFAULT: '#191C1A',      // Dark theme background (from MD dark)
-          light: '#2A3530',        // Slightly lighter for cards
-          lighter: '#354B40',      // Even lighter variant
+        'bg-secondary': {
+          light: '#f1f5f9',       // slate-100
+          dark: '#0f172a',        // slate-900
         },
-        'soft-blue': {
-          DEFAULT: '#E8F0E8',      // Light theme background (subtle green tint)
-          light: '#FBFDF8',        // Almost white (from MD light)
+        'bg-tertiary': {
+          light: '#e2e8f0',       // slate-200
+          dark: '#334155',        // slate-700
         },
+
+        // Text colors
+        'text-primary': {
+          light: '#1e293b',       // slate-800
+          dark: '#f8fafc',        // slate-50
+        },
+        'text-secondary': {
+          light: '#475569',       // slate-600
+          dark: '#cbd5e1',        // slate-300
+        },
+        'text-tertiary': {
+          light: '#94a3b8',       // slate-400
+          dark: '#94a3b8',        // slate-400
+        },
+
         // Glass surface colors
         glass: {
-          light: 'rgba(255, 255, 255, 0.85)',
-          dark: 'rgba(42, 53, 48, 0.85)',
+          light: 'rgba(248, 250, 252, 0.95)',
+          dark: 'rgba(30, 41, 59, 0.95)',
         },
       },
       backgroundImage: {
-        // Holographic gradient
-        'holographic': 'linear-gradient(135deg, #FF00FF 0%, #00FFFF 25%, #00FF00 50%, #FFFF00 75%, #FF00FF 100%)',
-        'holographic-border': 'linear-gradient(90deg, #FF00FF, #00FFFF, #00FF00, #FFFF00, #FF00FF)',
-        // Iridescent gradient
-        'iridescent': 'linear-gradient(90deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
-        // Chrome gradients
-        'chrome-light': 'linear-gradient(180deg, #E0E0E0 0%, #FAFAFA 50%, #D0D0D0 100%)',
-        'chrome-dark': 'linear-gradient(180deg, #3A3A3A 0%, #6A6A6A 50%, #3A3A3A 100%)',
-        // Glow gradients
-        'glow-pink': 'radial-gradient(circle, rgba(255,0,255,0.3) 0%, transparent 70%)',
-        'glow-cyan': 'radial-gradient(circle, rgba(0,255,255,0.3) 0%, transparent 70%)',
-        'glow-green': 'radial-gradient(circle, rgba(0,255,136,0.3) 0%, transparent 70%)',
+        // Subtle gradient for elevated surfaces
+        'surface-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
       },
       backdropBlur: {
         xs: '2px',
       },
       animation: {
-        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
-        'holographic-spin': 'holographic-spin 3s linear infinite',
-        'float': 'float 3s ease-in-out infinite',
-        'shimmer': 'shimmer 2s linear infinite',
+        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fade-in 200ms ease-out',
+        'slide-up': 'slide-up 200ms ease-out',
       },
       keyframes: {
-        'glow-pulse': {
-          '0%, 100%': { filter: 'drop-shadow(0 0 8px currentColor)' },
-          '50%': { filter: 'drop-shadow(0 0 16px currentColor)' },
+        'pulse-ring': {
+          '0%, 100%': { opacity: '0', transform: 'scale(1)' },
+          '50%': { opacity: '0.3', transform: 'scale(1.1)' },
         },
-        'holographic-spin': {
-          '0%': { backgroundPosition: '0% 50%' },
-          '100%': { backgroundPosition: '200% 50%' },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
-        'float': {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
-        'shimmer': {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
+        'slide-up': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
       fontFamily: {
-        'futuristic': ['Rajdhani', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'display': ['Orbitron', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'body': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'mono': ['JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', 'monospace'],
+        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'neon-pink': '0 0 20px rgba(255, 0, 255, 0.5)',
-        'neon-cyan': '0 0 20px rgba(0, 255, 255, 0.5)',
-        'neon-green': '0 0 20px rgba(0, 255, 136, 0.5)',
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'sm': '0 1px 2px rgba(0, 0, 0, 0.4)',
+        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5)',
+        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5)',
+        'glass': '0 4px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        'glow': '0 0 20px rgba(16, 185, 129, 0.15)',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
       },
     },
   },
   plugins: [],
 }
-

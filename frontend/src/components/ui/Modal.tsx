@@ -29,7 +29,6 @@ export const Modal: React.FC<ModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
-  // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -41,13 +40,10 @@ export const Modal: React.FC<ModalProps> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Focus management: trap focus inside modal and restore on close
   useEffect(() => {
     if (isOpen) {
-      // Save currently focused element
       previousActiveElement.current = document.activeElement as HTMLElement;
 
-      // Focus first focusable element in modal
       setTimeout(() => {
         const focusable = modalRef.current?.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -57,14 +53,12 @@ export const Modal: React.FC<ModalProps> = ({
         }
       }, 100);
     } else {
-      // Restore focus when modal closes
       if (previousActiveElement.current) {
         previousActiveElement.current.focus();
       }
     }
   }, [isOpen]);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -83,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-md-light-background/80 dark:bg-md-dark-background/80 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
@@ -96,7 +90,7 @@ export const Modal: React.FC<ModalProps> = ({
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               ref={modalRef}
-              className={`relative w-full ${sizeClasses[size]} bg-md-light-surface/90 dark:bg-md-dark-surface/90 backdrop-blur-lg border border-md-light-outline/30 dark:border-md-dark-outline/30 rounded-2xl shadow-2xl`}
+              className={`relative w-full ${sizeClasses[size]} bg-slate-800 border border-slate-700/50 rounded-2xl shadow-2xl`}
               variants={scaleVariants}
               initial="hidden"
               animate="visible"
@@ -108,20 +102,20 @@ export const Modal: React.FC<ModalProps> = ({
             >
               {/* Header */}
               {(title || showCloseButton) && (
-                <div className="flex items-center justify-between p-6 border-b border-md-light-outline/30 dark:border-md-dark-outline/30">
+                <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
                   {title && (
-                    <h2 id="modal-title" className="text-2xl font-display font-bold text-md-light-onSurface dark:text-md-dark-onSurface">
+                    <h2 id="modal-title" className="text-lg font-semibold text-slate-100">
                       {title}
                     </h2>
                   )}
                   {showCloseButton && (
                     <button
                       onClick={onClose}
-                      className="p-1 rounded-lg hover:bg-md-light-primaryContainer/30 dark:hover:bg-md-dark-primaryContainer/20 transition-colors"
+                      className="p-1 rounded-md hover:bg-slate-700 transition-colors ml-auto"
                       aria-label="Close modal"
                     >
                       <svg
-                        className="w-6 h-6 text-md-light-onSurfaceVariant dark:text-md-dark-onSurfaceVariant hover:text-md-light-onSurface dark:hover:text-md-dark-onSurface"
+                        className="w-5 h-5 text-slate-400 hover:text-slate-200"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -139,7 +133,7 @@ export const Modal: React.FC<ModalProps> = ({
               )}
 
               {/* Content */}
-              <div className="p-6">{children}</div>
+              <div className="p-5">{children}</div>
             </motion.div>
           </div>
         </>
