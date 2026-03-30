@@ -386,6 +386,18 @@ func (s *Service) CheckRecipientMessageSizeLimit(recipientEmail string, messageS
 	}, nil
 }
 
+// GetOutboundQueueCount returns the number of messages pending in the outbound send queue.
+// Returns -1 if the service is unavailable or an error occurs.
+func (s *Service) GetOutboundQueueCount() int {
+	return int(s.yggmailService.GetOutboundQueueCount())
+}
+
+// ClearOutboundQueue removes all entries from the outbound send queue.
+// Returns the number of entries removed, or -1 on error.
+func (s *Service) ClearOutboundQueue() int {
+	return int(s.yggmailService.ClearOutboundQueue())
+}
+
 // setupCallbacks configures the yggmail callbacks to forward events to our channels
 func (s *Service) setupCallbacks() {
 	// Set log callback

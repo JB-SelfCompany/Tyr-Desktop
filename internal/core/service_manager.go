@@ -815,6 +815,36 @@ func (sm *ServiceManager) CheckRecipientMessageSizeLimit(recipientEmail string, 
 	return service.CheckRecipientMessageSizeLimit(recipientEmail, messageSizeBytes)
 }
 
+// GetOutboundQueueCount returns the number of messages pending in the outbound send queue.
+// Returns -1 if the service is not initialized.
+// Thread-safe with read lock.
+func (sm *ServiceManager) GetOutboundQueueCount() int {
+	sm.mu.RLock()
+	service := sm.yggmailService
+	sm.mu.RUnlock()
+
+	if service == nil {
+		return -1
+	}
+
+	return service.GetOutboundQueueCount()
+}
+
+// ClearOutboundQueue removes all entries from the outbound send queue.
+// Returns the number of entries removed, or -1 on error.
+// Thread-safe with read lock.
+func (sm *ServiceManager) ClearOutboundQueue() int {
+	sm.mu.RLock()
+	service := sm.yggmailService
+	sm.mu.RUnlock()
+
+	if service == nil {
+		return -1
+	}
+
+	return service.ClearOutboundQueue()
+}
+
 // Note: monitorLogs was removed to prevent duplicate consumption of log events
 // Log events are now exclusively handled by App.startEventMonitoring() in events.go
 // This ensures all logs are properly forwarded to the frontend via Wails runtime events

@@ -682,6 +682,24 @@ func (a *App) SetMaxMessageSizeMB(sizeMB int64) error {
 	return nil
 }
 
+// GetOutboundQueueCount returns the number of messages pending in the outbound send queue.
+// Returns -1 if service manager is not initialized.
+func (a *App) GetOutboundQueueCount() int {
+	if a.serviceManager == nil {
+		return -1
+	}
+	return a.serviceManager.GetOutboundQueueCount()
+}
+
+// ClearOutboundQueue removes all entries from the outbound send queue.
+// Returns the number of entries removed, or -1 on error.
+func (a *App) ClearOutboundQueue() int {
+	if a.serviceManager == nil {
+		return -1
+	}
+	return a.serviceManager.ClearOutboundQueue()
+}
+
 // ==================== System Bindings ====================
 
 // ShowOpenFileDialog shows a file open dialog and returns the selected file path

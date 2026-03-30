@@ -362,8 +362,8 @@ func (a *App) ShowError(title string, err error) {
 	if a.mainWindow != nil {
 		// Use Fyne dialog to show error
 		fyne.Do(func() {
-			dialog := fyne.NewErrorDialog(title, err, a.mainWindow)
-			dialog.Show()
+			d := dialog.NewError(err, a.mainWindow)
+			d.Show()
 		})
 	}
 }
@@ -375,8 +375,8 @@ func (a *App) ShowInfo(title, message string) {
 	if a.mainWindow != nil {
 		// Use Fyne dialog to show information
 		fyne.Do(func() {
-			dialog := fyne.NewInformationDialog(title, message, a.mainWindow)
-			dialog.Show()
+			d := dialog.NewInformation(title, message, a.mainWindow)
+			d.Show()
 		})
 	}
 }

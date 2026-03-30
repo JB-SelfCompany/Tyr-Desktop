@@ -25,10 +25,12 @@ import {
   RestoreBackup,
   ShowSaveFileDialog,
   ShowOpenFileDialog,
+  GetOutboundQueueCount,
+  ClearOutboundQueue,
 } from '../../wailsjs/go/main/App';
 
 type BackupOptionsDTO = {
-  backupPath?: string;
+  backupPath: string;
   includeDatabase: boolean;
   password: string;
 };
@@ -57,6 +59,10 @@ export function Settings() {
   const [version, setVersion] = useState('loading...');
   const [storageStats, setStorageStats] = useState<any>(null);
   const [maxMessageSize, setMaxMessageSize] = useState(10);
+  const [queueCount, setQueueCount] = useState<number | null>(null);
+  const [isLoadingQueue, setIsLoadingQueue] = useState(false);
+  const [isClearingQueue, setIsClearingQueue] = useState(false);
+  const [showQueueModal, setShowQueueModal] = useState(false);
 
   const navigate = useNavigate();
   const [createPassword, setCreatePassword] = useState('');
@@ -146,6 +152,37 @@ export function Settings() {
       toast.error(error instanceof Error ? error.message : t('settings.messages.autostartChangeFailed'));
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleLoadQueueInfo = async () => {
+    setIsLoadingQueue(true);
+    try {
+      const count = await GetOutboundQueueCount();
+      setQueueCount(count);
+      setShowQueueModal(true);
+    } catch {
+      toast.error(t('storage.queue.loadFailed'));
+    } finally {
+      setIsLoadingQueue(false);
+    }
+  };
+
+  const handleClearQueue = async () => {
+    setIsClearingQueue(true);
+    try {
+      const cleared = await ClearOutboundQueue();
+      if (cleared < 0) {
+        toast.error(t('storage.queue.clearFailed'));
+      } else {
+        toast.success(t('storage.queue.cleared', { count: cleared }));
+        setQueueCount(0);
+      }
+      setShowQueueModal(false);
+    } catch {
+      toast.error(t('storage.queue.clearFailed'));
+    } finally {
+      setIsClearingQueue(false);
     }
   };
 
@@ -539,6 +576,26 @@ export function Settings() {
           </div>
         </div>
       </GlassCard>
+
+      <GlassCard padding="lg">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">📤</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-slate-100">{t('storage.queue.title')}</h3>
+              <p className="text-sm text-slate-400 mt-1">{t('storage.queue.description')}</p>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={handleLoadQueueInfo}
+            disabled={isLoadingQueue}
+            className="w-full"
+          >
+            {isLoadingQueue ? t('storage.queue.loading') : t('storage.queue.title')}
+          </Button>
+        </div>
+      </GlassCard>
     </motion.div>
   );
 
@@ -835,6 +892,38 @@ export function Settings() {
             <Button variant="primary" onClick={handleChangePassword} disabled={isProcessing}>
               {isProcessing ? t('settings.securitySettings.changing') : t('settings.securitySettings.changePassword')}
             </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Outbound Queue Modal */}
+      <Modal
+        isOpen={showQueueModal}
+        onClose={() => setShowQueueModal(false)}
+        title={`📤 ${t('storage.queue.title')}`}
+        size="md"
+      >
+        <div className="space-y-4">
+          {queueCount === 0 ? (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+              <p className="text-slate-200 text-sm">{t('storage.queue.empty')}</p>
+            </div>
+          ) : (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+              <p className="text-slate-200 text-sm">
+                {t('storage.queue.clearConfirm', { count: queueCount ?? 0 })}
+              </p>
+            </div>
+          )}
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="ghost" onClick={() => setShowQueueModal(false)}>
+              {t('action.cancel')}
+            </Button>
+            {(queueCount ?? 0) > 0 && (
+              <Button variant="danger" onClick={handleClearQueue} disabled={isClearingQueue}>
+                {isClearingQueue ? t('storage.queue.clearing') : t('storage.queue.clearButton')}
+              </Button>
+            )}
           </div>
         </div>
       </Modal>

@@ -162,6 +162,18 @@ export default {
     serviceRestarted: "Service restarted successfully",
     restartFailed: "Failed to restart service",
     rangeLabel: "{{value}} MB",
+    queue: {
+      title: "Outbound Queue",
+      description: "Remove stuck messages from the outbound send queue",
+      loading: "Loading queue info...",
+      empty: "Outbound queue is empty — no stuck messages.",
+      clearConfirm: "There are {{count}} message(s) stuck in the outbound queue. Clear them now?",
+      clearing: "Clearing queue...",
+      cleared: "Cleared {{count}} message(s) from the outbound queue",
+      clearFailed: "Failed to clear outbound queue",
+      clearButton: "Clear Queue",
+      loadFailed: "Failed to load queue info",
+    },
   },
 
   // DeltaChat Setup

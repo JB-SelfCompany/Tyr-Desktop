@@ -36,7 +36,8 @@ export namespace main {
 	    autoStart: boolean;
 	    smtpAddress: string;
 	    imapAddress: string;
-	
+	    databasePath: string;
+
 	    static createFrom(source: any = {}) {
 	        return new ConfigDTO(source);
 	    }
@@ -50,6 +51,7 @@ export namespace main {
 	        this.autoStart = source["autoStart"];
 	        this.smtpAddress = source["smtpAddress"];
 	        this.imapAddress = source["imapAddress"];
+		this.databasePath = source["databasePath"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

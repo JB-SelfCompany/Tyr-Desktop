@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-03-30
+
+### Added
+
+- **Outbound Queue Management** - Added ability to view and manually clear the outbound message queue from Settings → Storage section. Shows pending message count before clearing.
+
+### Changed
+
+- **Undeliverable Message Timeout** - Reduced automatic cleanup timeout for undeliverable messages from 7 days to 24 hours, preventing stale messages from blocking the queue.
+
 ## [2.2.0] - 2025-02-04
 
 ### Changed
@@ -108,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time service status monitoring
 - Log viewer
 
+[2.2.1]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/JB-SelfCompany/Tyr-Desktop/compare/2.0.2...2.1.0
